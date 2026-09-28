@@ -93,6 +93,30 @@ packages; they check the input (and, for `solve`, the output) and dispatch to `_
 abstract type AbstractPropagationAlgorithm end
 
 """
+    AbstractFieldConverter
+
+Supertype of converters: explicit objects that turn a field of one representation into
+another, e.g. a [`RayBundle`](@ref) into a [`SampledField`](@ref). Conversions are
+almost always approximations, so a converter carries all its parameters (grid, sampling,
+number of modes, coherence assumption) and its docstring states what it assumes and what
+it conserves. `OpticsBase` never converts implicitly (no `Base.convert` methods).
+
+Concrete converters: [`GaussianBeamletSummation`](@ref).
+
+# Interface
+
+A subtype implements:
+
+  - [`input_representation`](@ref)`(conv)`: the field type the converter accepts
+  - [`output_representation`](@ref)`(conv)`: the field type it returns
+  - [`__convert_field`](@ref)`(conv, field)`: the conversion itself
+
+Users call [`convert_field`](@ref), which checks the input with
+[`check_compatibility`](@ref) and the output against `output_representation`.
+"""
+abstract type AbstractFieldConverter end
+
+"""
     port(field::AbstractOpticalField) -> AbstractPort
 
 Returns the port at which `field` is given. Part of the [`AbstractOpticalField`](@ref)
@@ -135,20 +159,23 @@ add as complex amplitudes. Part of the [`AbstractOpticalField`](@ref) interface.
 function is_coherent end
 
 """
-    input_representation(alg::AbstractPropagationAlgorithm) -> Type
+    input_representation(stage) -> Type
 
-Trait: the field type that `alg` accepts, e.g. `SampledField{3}` or
-`Union{RayBundle, SampledField}`. A field is compatible with `alg` if
-`field isa input_representation(alg)`, see [`is_compatible`](@ref). There is no default
-method: a solver package must implement it for each algorithm.
+Trait: the field type that a propagation algorithm or converter `stage` accepts, e.g.
+`SampledField{3}` or `Union{RayBundle, SampledField}`. A field is compatible with `stage`
+if `field isa input_representation(stage)`, see [`is_compatible`](@ref). There is no
+default method: every [`AbstractPropagationAlgorithm`](@ref) and
+[`AbstractFieldConverter`](@ref) must implement it.
 """
 function input_representation end
 
 """
-    output_representation(alg::AbstractPropagationAlgorithm) -> Type
+    output_representation(stage) -> Type
 
-Trait: the field type that `alg` returns in `sol.field`. `solve` checks
-`sol.field isa output_representation(alg)`. There is no default method: a solver package
-must implement it for each algorithm.
+Trait: the field type that a propagation algorithm returns in `sol.field`, or that a
+converter returns from [`convert_field`](@ref). `solve` and `convert_field` check
+`field isa output_representation(stage)`. There is no default method: every
+[`AbstractPropagationAlgorithm`](@ref) and [`AbstractFieldConverter`](@ref) must
+implement it.
 """
 function output_representation end

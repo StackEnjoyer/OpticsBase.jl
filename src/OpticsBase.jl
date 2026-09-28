@@ -34,6 +34,12 @@ export PlanarPort, RegularGrid, SampledField, RayBundle
 export PropagationProblem, PropagationSolution, MissingConverterError
 export is_compatible, check_compatibility
 
+# Converters
+export AbstractFieldConverter, convert_field, GaussianBeamletSummation
+
+# Free-space propagation (numerics via the WaveOpticsPropagation extension)
+export FreeSpace, AngularSpectrumMethod
+
 # Documented API that is not exported to avoid name clashes with solver packages
 @static if VERSION >= v"1.11.0-DEV.469"
     eval(Meta.parse("""
@@ -41,7 +47,7 @@ export is_compatible, check_compatibility
                origin, local_axes, normal, refractive_index, to_local, to_global,
                ray_basis, jones_to_global, circular_jones,
                spacing, coordinates, grid, field_array, has_beamlets,
-               __solve, __init
+               __solve, __init, __convert_field
         """))
 end
 
@@ -52,5 +58,13 @@ include("Grids.jl")
 include("SampledField.jl")
 include("RayBundle.jl")
 include("Problem.jl")
+include("Converters.jl")
+include("BeamletSummation.jl")
+include("FreeSpace.jl")
+
+function __init__()
+    _register_error_hints()
+    return nothing
+end
 
 end # module OpticsBase

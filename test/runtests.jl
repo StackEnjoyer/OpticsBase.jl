@@ -10,6 +10,9 @@ const TEST_MODULES = [
     "TestSampledField",
     "TestRayBundle",
     "TestProblem",
+    "TestConverters",
+    "TestBeamletSummation",
+    "TestFreeSpace",
     "TestAqua",
 ]
 

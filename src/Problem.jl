@@ -82,27 +82,30 @@ function Base.showerror(io::IO, e::MissingConverterError)
         " is missing; convert the field explicitly before propagating it.")
 end
 
-"""
-    is_compatible(field::AbstractOpticalField, alg::AbstractPropagationAlgorithm) -> Bool
+# Anything that takes a field as input: propagation algorithms and converters
+const _FieldStage = Union{AbstractPropagationAlgorithm, AbstractFieldConverter}
 
-Returns `true` if `alg` accepts `field` as input, i.e.
-`field isa input_representation(alg)`. Pipelines use it to check whether stages fit
-together without running them.
 """
-function is_compatible(field::AbstractOpticalField, alg::AbstractPropagationAlgorithm)
-    return field isa input_representation(alg)
+    is_compatible(field::AbstractOpticalField, stage) -> Bool
+
+Returns `true` if the propagation algorithm or converter `stage` accepts `field` as input,
+i.e. `field isa input_representation(stage)`. Pipelines use it to check whether stages
+fit together without running them.
+"""
+function is_compatible(field::AbstractOpticalField, stage::_FieldStage)
+    return field isa input_representation(stage)
 end
 
 """
-    check_compatibility(field::AbstractOpticalField, alg::AbstractPropagationAlgorithm)
+    check_compatibility(field::AbstractOpticalField, stage)
 
-Throws a [`MissingConverterError`](@ref) if `alg` does not accept `field` (see
-[`is_compatible`](@ref)), otherwise returns `nothing`. Called by `solve` and `init` before
-any solver code runs.
+Throws a [`MissingConverterError`](@ref) if the propagation algorithm or converter `stage`
+does not accept `field` (see [`is_compatible`](@ref)), otherwise returns `nothing`. Called
+by `solve`, `init` and [`convert_field`](@ref) before any solver or converter code runs.
 """
-function check_compatibility(field::AbstractOpticalField, alg::AbstractPropagationAlgorithm)
-    is_compatible(field, alg) ||
-        throw(MissingConverterError(typeof(field), input_representation(alg)))
+function check_compatibility(field::AbstractOpticalField, stage::_FieldStage)
+    is_compatible(field, stage) ||
+        throw(MissingConverterError(typeof(field), input_representation(stage)))
     return nothing
 end
 

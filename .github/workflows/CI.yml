@@ -46,6 +46,26 @@ jobs:
           files: lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
+  integration:
+    name: Integration (BeamletOptics, WaveOpticsPropagation)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions: # needed to allow julia-actions/cache to proactively delete old caches that it has created
+      actions: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: '1'
+      - uses: julia-actions/cache@v3
+      - name: Run integration tests
+        run: |
+          julia --project=test/integration --color=yes -e '
+            using Pkg
+            Pkg.instantiate()
+            include("test/integration/runtests.jl")
+          '
   docs:
     name: Documentation
     runs-on: ubuntu-latest

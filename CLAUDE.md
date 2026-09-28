@@ -25,6 +25,10 @@ Architecture role models:
    extension (`[weakdeps]` + `ext/`).
 3. **Solvers connect via extensions.** Pairwise specialized converters live as extensions
    in the respective solver package (e.g. `BeamletOpticsOpticsBaseExt`), not here.
+   Exception (plans/chain-bmo-fourier.md, D3/D4): BeamletOptics must stay unchanged and
+   WaveOpticsPropagation is third party, so their glue lives here as
+   `OpticsBaseBeamletOpticsExt` and `OpticsBaseWaveOpticsPropagationExt`; the BMO glue may
+   move into BMO once OpticsBase is registered.
 4. **Converters are explicit objects**, never implicit `Base.convert`. They carry their
    parameters (grid, sampling, number of modes, coherence assumption), because
    conversions are almost always approximations.
@@ -158,6 +162,20 @@ there.
 `TestAqua` runs Aqua.jl (ambiguities, piracy, stale deps, compat bounds); it is slow, so
 skip it while iterating on unrelated code.
 
+Integration tests with the heavy weak dependencies (BeamletOptics needs Julia ≥ 1.12,
+WaveOpticsPropagation pulls CUDA.jl and Zygote) live in their own environment
+`test/integration/` with its own `TEST_MODULES` list and a separate CI job on Julia 1.
+Never add these packages to the main test targets.
+
+- Single integration module (or several), from the repo root:
+  ```
+  julia --project=test/integration -e 'using Pkg; Pkg.instantiate(); include("test/integration/runtests.jl")' TestChain
+  ```
+- All integration modules: the same command without a module name.
+
+The "full suite" at the end of a plan means both: the core suite and all integration
+modules.
+
 ## Julia code conventions
 
 - **Multiple dispatch, not `if` cascades over types.** Behavior that depends on the
@@ -245,5 +263,7 @@ BMO-specific conventions in OpticsBase:
 
 - BMO uses the global +y axis as its optical axis and right-handed frames with CCW
   rotations. OpticsBase has no global optical axis; the mapping onto ports happens in
-  `BeamletOpticsOpticsBaseExt` inside BMO.
-- BMO-side code (the extension) follows BMO's own `CLAUDE.md`, not this file.
+  the extension `ext/OpticsBaseBeamletOpticsExt.jl` (here, see settled decision 3).
+- BeamletOptics itself is not changed for OpticsBase. The extension adapts to BMO's
+  conventions (detector frame, amplitude normalization); the mapping is listed in the
+  Rationale of `plans/core-types.md` ("BMO compatibility").
