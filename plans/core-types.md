@@ -1,6 +1,6 @@
 # Core types: ports, RayBundle, SampledField, problem interface
 
-**Status:** approved · **Tier:** full
+**Status:** implemented · **Tier:** full
 
 ## Goal
 
@@ -314,6 +314,28 @@ Flow of `solve(prob, alg; kw...)`:
 - `__solve`/`__init` have no methods except the fallback; missing implementations surface as `MethodError`.
 - Tests use a test-local `MockField <: AbstractOpticalField` (implements `port`) and mock algorithms (one via `__solve`, one via `__init` + `solve!`, one returning a wrong port) — do not depend on `RayBundle`/`SampledField`.
 - Docstrings of `AbstractPropagationAlgorithm`, `__solve`, `__init` form the solver-author interface: list exactly what a solver package must implement.
+
+</details>
+
+<details>
+<summary>Deviations</summary>
+
+- W1: `ray_basis` normalizes `dir` internally and returns exactly `(u, v)` when `dir ∥ n`
+  (checked on the unnormalized input). Directions with `d·n > 0` only by rounding
+  (grazing) are accepted, consistent with `RayBundle` invariant 3.
+- W2: the outer `RayBundle` constructor copies its inputs into new `Vector`s; N is
+  inferred from the first phasor unless `SVector`s are passed; `has_beamlets` is a runtime
+  check.
+- W3: extra invariants (`dims ≥ 1`, finite spacings, `wavelength > 0`), `size(grid, d)`,
+  and a type-stable `SampledField{N}(E, grid, port, λ)` constructor; `coordinates` is a
+  `StepRangeLen` anchored at 0 in the center sample.
+- W4: constructor synopses live in the type docstrings; `_check_solution` also rejects a
+  `__solve` that does not return a `PropagationSolution`.
+- Process: the implementer worktrees were cut from the scaffold commit instead of the W1
+  commit; the implementers tested against an exported copy of the W1 commit and the lead
+  copied the files over.
+- Integration: `runtests.jl` evaluates each test file in its own module; the module
+  docstring moved to the Home page after dropping the catch-all `@autodocs`.
 
 </details>
 

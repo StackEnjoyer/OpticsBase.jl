@@ -29,3 +29,9 @@ to a fiber solver, which in turn hands its output to a Fourier-optics solver, wi
   together and report a missing converter instead of computing something wrong.
 
 The binding physical conventions are listed on the [Conventions](@ref) page.
+
+## Package overview
+
+```@docs
+OpticsBase
+```

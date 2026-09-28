@@ -1,5 +1,4 @@
-# Reference
+# Index
 
-```@autodocs
-Modules = [OpticsBase]
+```@index
 ```

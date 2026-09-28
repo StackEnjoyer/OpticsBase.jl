@@ -15,3 +15,6 @@ lcov.info
 /docs/Manifest.toml
 /docs/Manifest-v*.toml
 /docs/build/
+
+# Claude Code worktrees
+/.claude/worktrees/

@@ -45,7 +45,7 @@ Architecture role models:
 ```julia
 abstract type AbstractOpticalField end
 
-RayBundle        # rays/beamlets: pos, dir, opl, power, polarization, λ, coherence_id
+RayBundle{N}     # one coherent component: per ray pos, dir, opl, power, unit phasor ∈ ℂᴺ, optional beamlet Q; λ + port per bundle
 SampledField{N}  # complex field on plane/volume; N = 1 scalar, N = 3 vectorial; with grid + port
 AngularSpectrum  # samples on the k-sphere: k vectors, E vectors, weights (Jacobian/apodization), λ
 ModalField       # reference to a mode basis + complex coefficients (later)
@@ -58,8 +58,10 @@ dimensionality — not every format is a 2D/3D grid.
 ## Ports
 
 Every handover happens at a port: a surface in global coordinates with origin, normal
-and local axes. The port also fixes the polarization basis. No field handover without a
-port. OpticsBase has no global optical axis.
+and local axes. The port also fixes the polarization basis and the medium (refractive
+index). No field handover without a port. OpticsBase has no global optical axis. The
+local frame `(u, v, n)` is right-handed, `n` points downstream (`n·k > 0`), and `u` is
+always passed explicitly.
 
 ## Conventions
 
@@ -68,15 +70,26 @@ it and this summary in sync.
 
 - **Time convention:** exp(−iωt). Plane wave: exp(i(k·r − ωt)).
 - **Units:** SI internally (m, s, W). Unitful only optionally via extension.
-- **Phase reference:** carrier wave not included; OPL referenced to the port origin. If a
-  format deviates, document it explicitly.
-- **Power normalization:** ∫|E|² dA = P with one documented factor for refractive index
-  and impedance; one factor, used everywhere.
-- **Polarization:** Jones vectors in the local port basis; 3D E vectors in the global
-  frame; one handedness convention for circular polarization, applied everywhere.
-- **Coherence:** polychromatic fields are lists of monochromatic components. Each
-  component carries a coherence group; add coherently (fields) only within a group,
-  incoherently (intensities) between groups.
+- **Phase reference:** only the carrier exp(−iωt) is excluded; fields store the full
+  spatial phase. OPL is absolute, counted from the reference point of the coherent
+  component (set by the first solver of the chain); the port origin is r₀ only for
+  position-dependent phase terms. Ray phase = k₀·OPL + arg(phasor). If a format deviates,
+  document it explicitly.
+- **Power normalization:** E is the physical peak amplitude in V/m (real field
+  Re(E·e^{−iωt})); P = n/(2Z₀) ∫|E|² dA with n the port index and
+  Z₀ = 376.730313668 Ω (same literal as BMO's `Z_vacuum`). Exact along n, paraxial
+  otherwise; no obliquity weighting in E. One factor, used everywhere
+  (`power_normalization`).
+- **Polarization:** 3D E vectors in the global frame. Jones vectors in a right-handed
+  basis: `(u, v)` at the port, for oblique rays the ray basis `R(n→d)·(u, v)` (minimal
+  rotation, Richards–Wolf). Circular handedness by helicity: right = positive helicity =
+  `(1, i)/√2`, rotating u → v under exp(−iωt).
+- **Coherence:** each field is one monochromatic, coherent component; polychromatic or
+  incoherent light is a collection of fields. Components add coherently (fields) only
+  within a coherence group, incoherently (intensities) between groups; coherence groups
+  are not yet in the API.
+- **Grids:** regular grids in port-local coordinates, sample i at (i − (N÷2 + 1))·Δ, i.e.
+  the port origin is the fftshift center; no grid offsets (move the port instead).
 - **Vector fields:** transversality k·E = 0 must hold for all `AngularSpectrum` samples.
 
 When a convention is unclear: do not guess. Ask me and record the decision in

@@ -16,9 +16,12 @@ makedocs(;
     ),
     pagesonly=true,
     pages=[
-        "Home"        => "index.md",
-        "Conventions" => "conventions.md",
-        "Reference"   => "reference.md",
+        "Home"             => "index.md",
+        "Conventions"      => "conventions.md",
+        "Ports"            => "ports.md",
+        "Exchange formats" => "formats.md",
+        "Solver interface" => "interface.md",
+        "Index"            => "reference.md",
     ],
 )
 
