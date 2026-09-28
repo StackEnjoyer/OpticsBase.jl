@@ -259,8 +259,9 @@ Extension module `OpticsBaseBeamletOpticsExt` (uses `OpticsBase`, `BeamletOptics
   D3 c) separate glue package; D4 b) types only in the extension, D4 c) upstream PR;
   D5 b) lateral shifts; D6 b) BMO/WOP in the main test targets; D7 b) full BMO solver
   wrapper with reverse conversion.
-- Name clash to resolve before the `AngularSpectrum` exchange format is added:
-  WaveOpticsPropagation exports `AngularSpectrum` (its propagator), so `using OpticsBase,
-  WaveOpticsPropagation` would make both unusable unqualified.
+- Name clash with WaveOpticsPropagation, which exports `AngularSpectrum` (its
+  propagator): an OpticsBase exchange format of the same name would make both unusable
+  unqualified after `using OpticsBase, WaveOpticsPropagation`. Resolved after this plan:
+  the planned format is called `PlaneWaveSpectrum`.
 
 </details>

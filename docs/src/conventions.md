@@ -95,7 +95,7 @@ one (e.g. angular spectra) carry it in their own sample weights.
   first to the second basis vector, i.e. counter-clockwise for an observer facing the
   source. This is the opposite of the traditional naming in Born & Wolf and Hecht. See
   [`circular_jones`](@ref).
-- For every sample of an angular spectrum, transversality ``\mathbf{k}\cdot\mathbf{E} = 0``
+- For every sample of a plane-wave spectrum, transversality ``\mathbf{k}\cdot\mathbf{E} = 0``
   must hold.
 
 ## Coherence

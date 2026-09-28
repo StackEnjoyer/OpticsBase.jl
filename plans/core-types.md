@@ -6,8 +6,9 @@
 
 Phase 1 of the roadmap in `CLAUDE.md`: ports, `RayBundle`, `SampledField` (scalar +
 vectorial), traits, `PropagationProblem`/`solve`, and all open conventions fixed.
-Out of scope (next plan): converters, `AngularSpectrum`, BMO extension, Fourier-solver
-wrapper, `OpticsBaseTests`, coherence groups, `ModalField`, curved ports, Unitful.
+Out of scope (next plan): converters, `PlaneWaveSpectrum` (then called `AngularSpectrum`),
+BMO extension, Fourier-solver wrapper, `OpticsBaseTests`, coherence groups, `ModalField`,
+curved ports, Unitful.
 
 ## Change map
 

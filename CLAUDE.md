@@ -49,15 +49,17 @@ Architecture role models:
 ```julia
 abstract type AbstractOpticalField end
 
-RayBundle{N}     # one coherent component: per ray pos, dir, opl, power, unit phasor ∈ ℂᴺ, optional beamlet Q; λ + port per bundle
-SampledField{N}  # complex field on plane/volume; N = 1 scalar, N = 3 vectorial; with grid + port
-AngularSpectrum  # samples on the k-sphere: k vectors, E vectors, weights (Jacobian/apodization), λ
-ModalField       # reference to a mode basis + complex coefficients (later)
+RayBundle{N}       # one coherent component: per ray pos, dir, opl, power, unit phasor ∈ ℂᴺ, optional beamlet Q; λ + port per bundle
+SampledField{N}    # complex field on plane/volume; N = 1 scalar, N = 3 vectorial; with grid + port
+PlaneWaveSpectrum  # samples on the k-sphere: k vectors, E vectors, weights (Jacobian/apodization), λ
+ModalField         # reference to a mode basis + complex coefficients (later)
 ```
 
-`AngularSpectrum` is the central node between the ray and the wave world: a ray is a
+`PlaneWaveSpectrum` is the central node between the ray and the wave world: a ray is a
 k vector with amplitude and phase. Format names describe the representation, not the
-dimensionality — not every format is a 2D/3D grid.
+dimensionality — not every format is a 2D/3D grid. The name is deliberately not
+`AngularSpectrum`: WaveOpticsPropagation exports its propagator under that name, and
+exported OpticsBase names must not collide with those of solver packages.
 
 ## Ports
 
@@ -94,7 +96,7 @@ it and this summary in sync.
   are not yet in the API.
 - **Grids:** regular grids in port-local coordinates, sample i at (i − (N÷2 + 1))·Δ, i.e.
   the port origin is the fftshift center; no grid offsets (move the port instead).
-- **Vector fields:** transversality k·E = 0 must hold for all `AngularSpectrum` samples.
+- **Vector fields:** transversality k·E = 0 must hold for all `PlaneWaveSpectrum` samples.
 
 When a convention is unclear: do not guess. Ask me and record the decision in
 `docs/src/conventions.md`.
@@ -103,8 +105,8 @@ When a convention is unclear: do not guess. Ask me and record the decision in
 
 - `RayBundle` → `SampledField`: coherent summation of Gaussian beamlets onto a grid at
   the port.
-- `SampledField` ↔ `AngularSpectrum`: FFT or NUFFT (via extension).
-- `AngularSpectrum` → `SampledField` (focus/far field): Debye–Wolf via chirp-z for single
+- `SampledField` ↔ `PlaneWaveSpectrum`: FFT or NUFFT (via extension).
+- `PlaneWaveSpectrum` → `SampledField` (focus/far field): Debye–Wolf via chirp-z for single
   planes; 3D/4D gridding (NUFFT, cf. Lorbeer et al., Opt. Express 23, 3341 (2015)) only
   for volumes/time.
 - Later: `SampledField` → `RayBundle` (Gaussian beam decomposition or phase gradient).
@@ -115,7 +117,7 @@ When a convention is unclear: do not guess. Ask me and record the decision in
 A common test suite that every implementation must pass (as a submodule or a separate
 package `OpticsBaseTests`):
 - Energy conservation across every converter.
-- Round trips, e.g. `SampledField` → `AngularSpectrum` → `SampledField`.
+- Round trips, e.g. `SampledField` → `PlaneWaveSpectrum` → `SampledField`.
 - Analytical references: Gaussian beam (waist, Rayleigh length, Gouy phase).
 - Vectorial: transversality; x-polarized pupil at NA 0.9 (elongated focus, E_z lobes);
   radially polarized pupil (strong on-axis E_z).
