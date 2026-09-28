@@ -1,10 +1,11 @@
 using OpticsBase
+using BeamletOptics   # loads OpticsBaseBeamletOpticsExt, whose docstring is embedded
 using Documenter
 
 DocMeta.setdocmeta!(OpticsBase, :DocTestSetup, :(using OpticsBase); recursive=true)
 
 makedocs(;
-    modules=[OpticsBase],
+    modules=[OpticsBase, Base.get_extension(OpticsBase, :OpticsBaseBeamletOpticsExt)],
     authors="Hugo Uittenbosch <hugo.uittenbosch@dlr.de> and contributors",
     repo=Remotes.GitHub("StackEnjoyer", "OpticsBase.jl"),
     sitename="OpticsBase.jl",
@@ -21,6 +22,8 @@ makedocs(;
         "Ports"            => "ports.md",
         "Exchange formats" => "formats.md",
         "Solver interface" => "interface.md",
+        "Converters"       => "converters.md",
+        "Solvers and extensions" => "solvers.md",
         "Index"            => "reference.md",
     ],
 )

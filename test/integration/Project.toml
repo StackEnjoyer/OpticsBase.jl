@@ -2,6 +2,7 @@
 BeamletOptics = "c387492b-ffec-4e51-9a46-bd230226031c"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 OpticsBase = "0a174593-c395-4975-8599-97e6c4e949e6"
+Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 WaveOpticsPropagation = "c4c7a1f9-3adc-4a73-843a-d378b6c86436"

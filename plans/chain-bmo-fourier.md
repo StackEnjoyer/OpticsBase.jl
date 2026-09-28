@@ -1,6 +1,6 @@
 # First chain: BeamletOptics → OpticsBase → Fourier solver
 
-**Status:** approved · **Tier:** full
+**Status:** implemented · **Tier:** full
 
 ## Goal
 
@@ -218,6 +218,30 @@ Extension module `OpticsBaseBeamletOpticsExt` (uses `OpticsBase`, `BeamletOptics
   for pure rays (`ArgumentError` otherwise).
 - Never use BMO's detector field functions or its √cos projection factor.
 - Tests: see Acceptance W3, plus a tilted detector (rotated about BMO's z axis).
+
+</details>
+
+<details>
+<summary>Deviations</summary>
+
+- W1: `AbstractFieldConverter` lives in `src/AbstractTypes.jl`, and the existing
+  `is_compatible`/`check_compatibility` methods were widened to
+  `Union{AbstractPropagationAlgorithm, AbstractFieldConverter}` instead of adding separate
+  converter methods; `convert_field` also checks the output representation. The converter
+  hook is `__convert_field` (public), mirroring `__solve`.
+- W2: refractive indices are compared within `√eps`; the missing-backend hint is printed
+  only while the extension is not loaded; `__solve` accepts any `AbstractGrid{2}`.
+- W3: the beamlet power uses the exact Lagrange invariant, `κ·‖E‖²·π·|area_ref|/2`, so it
+  equals BMO's `optical_power` to machine precision; BMO's parabasal rays fulfil the
+  invariant only to O(θ²), so the amplitude derived from power and Q differs from BMO's
+  field by ≈ 4·10⁻⁸. Extra checks: `power` must not be given for beamlets, the given port
+  must match the hits' refractive index, empty detectors are rejected.
+- Integration: the chain agrees with BMO's own field to 1.2·10⁻⁷, so `TestChain` checks
+  `< 10⁻⁶` instead of the planned `10⁻³`. Added `examples/bmo_to_fourier.jl` (run in the
+  integration CI job); the docs environment loads BeamletOptics so the extension
+  docstring of `RayBundle(::Detector)` is embedded.
+- Process: implementer worktrees were again cut from the last pushed commit; the
+  implementers worked on an export of the local base commit.
 
 </details>
 

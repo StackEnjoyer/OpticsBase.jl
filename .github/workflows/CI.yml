@@ -66,6 +66,8 @@ jobs:
             Pkg.instantiate()
             include("test/integration/runtests.jl")
           '
+      - name: Run example
+        run: julia --project=test/integration --color=yes examples/bmo_to_fourier.jl
   docs:
     name: Documentation
     runs-on: ubuntu-latest
