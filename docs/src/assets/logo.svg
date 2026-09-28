@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="372" height="244" viewBox="10 28 372 244" role="img" aria-labelledby="title desc">
+  <title id="title">OpticsBase.jl</title>
+  <desc id="desc">Three rays converge onto a port and leave it as a spherical wave: the ray-to-wave handover at a port.</desc>
+  <!-- Julia colors: red #CB3C33, green #389826, purple #9558B2, blue #4063D8.
+       No black or white, so one file serves both light and dark themes. -->
+  <g fill="none" stroke-width="12">
+    <!-- ray bundle aimed at the port origin (200, 150); arrow tips on a circle of
+         radius 62 around it, heads 26 wide and 20 long -->
+    <line x1="24" y1="70" x2="126.72" y2="116.69" stroke="#CB3C33"/>
+    <polygon points="143.56,124.34 119.97,127.9 130.73,104.23" fill="#CB3C33" stroke="none"/>
+    <line x1="24" y1="150" x2="119.5" y2="150" stroke="#389826"/>
+    <polygon points="138,150 118,163 118,137" fill="#389826" stroke="none"/>
+    <line x1="24" y1="230" x2="126.72" y2="183.31" stroke="#9558B2"/>
+    <polygon points="143.56,175.66 130.73,195.77 119.97,172.1" fill="#9558B2" stroke="none"/>
+    <!-- spherical wavefronts centered on the port origin, +-30 deg -->
+    <path d="M 251.96 120 A 60 60 0 0 1 251.96 180" stroke="#CB3C33"/>
+    <path d="M 295.26 95 A 110 110 0 0 1 295.26 205" stroke="#389826"/>
+    <path d="M 338.56 70 A 160 160 0 0 1 338.56 230" stroke="#9558B2"/>
+  </g>
+  <!-- port: a plane seen in perspective -->
+  <polygon points="189,60 211,40 211,240 189,260" fill="#4063D8"/>
+</svg>

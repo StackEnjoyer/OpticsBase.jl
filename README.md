@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/src/assets/logo.svg" width="300" alt="OpticsBase.jl logo">
+</p>
+
 # OpticsBase.jl
 
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://StackEnjoyer.github.io/OpticsBase.jl/dev/)
