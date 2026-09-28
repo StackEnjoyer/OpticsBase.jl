@@ -1,0 +1,24 @@
+name = "OpticsBase"
+uuid = "0a174593-c395-4975-8599-97e6c4e949e6"
+version = "0.1.0"
+authors = ["Hugo Uittenbosch <hugo.uittenbosch@dlr.de> and contributors"]
+
+[deps]
+CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
+[compat]
+Aqua = "0.8"
+CommonSolve = "0.2"
+LinearAlgebra = "1"
+StaticArrays = "1"
+Test = "1"
+julia = "1.10"
+
+[extras]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Aqua", "Test"]

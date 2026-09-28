@@ -1,0 +1,9 @@
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+OpticsBase = "0a174593-c395-4975-8599-97e6c4e949e6"
+
+[sources]
+OpticsBase = {path = ".."}
+
+[compat]
+Documenter = "1"

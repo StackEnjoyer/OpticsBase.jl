@@ -1,0 +1,17 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Coverage / allocation output
+*.jl.*.cov
+*.jl.cov
+*.jl.mem
+lcov.info
+
+.vscode
+
+/Manifest.toml
+/Manifest-v*.toml
+/docs/Manifest.toml
+/docs/Manifest-v*.toml
+/docs/build/
