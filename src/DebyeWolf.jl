@@ -1,15 +1,16 @@
 """
     DebyeWolf(port::AbstractPort; solid_angle = nothing) <: AbstractFieldConverter
 
-Converter from a converging [`RayBundle`](@ref) to a [`PlaneWaveSpectrum`](@ref) at
-`port`, in the Debye approximation: every ray becomes one plane wave along its direction,
-the origin of `port` is the focus (phase reference) of the spectrum. Evaluate the focal
-field with [`PlaneWaveSummation`](@ref).
+Converter from a converging [`PolarizedRayBundle`](@ref) to a vectorial
+[`PlaneWaveSpectrum`](@ref) at `port`, in the Debye approximation: every ray becomes one
+plane wave along its direction, the origin of `port` is the focus (phase reference) of the
+spectrum. Evaluate the focal field with [`PlaneWaveSummation`](@ref).
 
 # Model
 
 Ray `j` of the bundle has position `p`, unit direction `d`, optical path length `opl`,
-power `P` and unit phasor `e` (see [`RayBundle`](@ref)). It becomes the sample
+power `P` and unit polarization `e` (see [`PolarizedRayBundle`](@ref)). It becomes the
+sample
 
 ```math
 \\mathbf{s}_j = \\mathbf{d}_j, \\qquad
@@ -27,8 +28,8 @@ apertures (longitudinal fields) are included.
 
 # Solid angles
 
-A `RayBundle` stores the power of each ray, not the size of its ray tube, so the solid
-angle per ray must come from the sampling:
+A `PolarizedRayBundle` stores the power of each ray, not the size of its ray tube, so the
+solid angle per ray must come from the sampling:
 
   - `solid_angle = nothing` (default): Voronoi cells of the ray directions in the plane of
     direction cosines `(d·u, d·v)` of `port`, clipped to their convex hull, divided by
@@ -48,8 +49,6 @@ angle per ray must come from the sampling:
     solid angles. The solid angles only shape the focal field; Voronoi cells of the hull
     rays are cut at the hull, so the aperture edge is sampled to first order (the error of
     the focal field decreases like `1/√M`).
-  - Gaussian beamlets are converted like rays (chief ray and power); their matrices `Q`
-    are ignored.
 
 # Fields
 
@@ -72,10 +71,10 @@ end
 
 DebyeWolf(port::AbstractPort; solid_angle = nothing) = DebyeWolf(port, solid_angle)
 
-input_representation(::DebyeWolf) = RayBundle
-output_representation(::DebyeWolf) = PlaneWaveSpectrum
+input_representation(::DebyeWolf) = PolarizedRayBundle
+output_representation(::DebyeWolf) = PlaneWaveSpectrum{3}
 
-function __convert_field(conv::DebyeWolf, bundle::RayBundle{N, T}) where {N, T}
+function __convert_field(conv::DebyeWolf, bundle::PolarizedRayBundle{T}) where {T}
     p = conv.port
     tol = sqrt(eps(T))
     n_med = T(refractive_index(p))
@@ -109,14 +108,10 @@ function __convert_field(conv::DebyeWolf, bundle::RayBundle{N, T}) where {N, T}
         d = bundle.direction[j]
         phase = k0 * bundle.opl[j] - k * dot(d, bundle.position[j] - r0)
         a = -im / λₘ * sqrt(bundle.power[j] / (κ * w[j])) * cis(phase)
-        a * bundle.phasor[j]
+        a * bundle.polarization[j]
     end
-    return PlaneWaveSpectrum(p, λ, copy(bundle.direction), _unwrap(Val(N), amplitude), w)
+    return PlaneWaveSpectrum(p, λ, copy(bundle.direction), amplitude, w)
 end
-
-# Scalar amplitudes are passed as numbers, vectorial ones as SVectors.
-_unwrap(::Val{1}, amplitude) = map(first, amplitude)
-_unwrap(::Val, amplitude) = amplitude
 
 function _solid_angles(w::AbstractVector, directions, _, _, _, ::Type{T}) where {T}
     length(w) == length(directions) ||

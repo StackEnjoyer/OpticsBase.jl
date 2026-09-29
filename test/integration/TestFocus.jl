@@ -1,5 +1,5 @@
 # Second chain: BeamletOptics polarized rays → 90° off-axis parabolic mirror → Detector →
-# RayBundle → DebyeWolf (Voronoi solid angles) → PlaneWaveSpectrum → PlaneWaveSummation
+# PolarizedRayBundle → DebyeWolf (Voronoi solid angles) → PlaneWaveSpectrum → PlaneWaveSummation
 # → vectorial focal field, checked against a reference from analytic mirror rays with exact
 # solid angles.
 
@@ -43,7 +43,7 @@ function traced_detector()
     return det
 end
 
-bundle = RayBundle(traced_detector(); power = P0)
+bundle = PolarizedRayBundle(traced_detector(); power = P0)
 pws = convert_field(DebyeWolf(portF), bundle)
 field = convert_field(PlaneWaveSummation(grid), pws)
 E = OB.field_array(field)
@@ -87,7 +87,7 @@ function reference_bundle(portA; nr = 64, nφ = 128)
         push!(phasor, reflect_polarization(E_in, SVector(0.0, 1, 0), d))
         push!(w, dA / ρq^2)
     end
-    return RayBundle(portA, λ, positions, directions, opl, power, phasor), w
+    return PolarizedRayBundle(portA, λ, positions, directions, opl, power, phasor), w
 end
 
 ref_bundle, w_ref = reference_bundle(OB.port(bundle))
@@ -106,7 +106,7 @@ E_ref = OB.field_array(convert_field(PlaneWaveSummation(grid),
     @test maximum(to_focus) - minimum(to_focus) < λ / 1000
     # Polarization from BMO agrees with the ideal-mirror formula of the reference
     e_ref = [reflect_polarization(E_in, SVector(0.0, 1, 0), d) for d in bundle.direction]
-    @test maximum(norm.(bundle.phasor .- e_ref)) < 1e-9
+    @test maximum(norm.(bundle.polarization .- e_ref)) < 1e-9
 end
 
 @testset "focal field" begin

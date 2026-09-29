@@ -5,13 +5,13 @@
 
 # --- Mock fields ------------------------------------------------------------------------
 
-struct MockField{P <: AbstractPort} <: AbstractOpticalField
+struct MockField{P <: AbstractPort} <: AbstractOpticalField{1}
     port::P
     value::Float64
 end
 OpticsBase.port(f::MockField) = f.port
 
-struct OtherMockField{P <: AbstractPort} <: AbstractOpticalField
+struct OtherMockField{P <: AbstractPort} <: AbstractOpticalField{1}
     port::P
 end
 OpticsBase.port(f::OtherMockField) = f.port

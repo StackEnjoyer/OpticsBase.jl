@@ -2,6 +2,7 @@
 BeamletOptics = "c387492b-ffec-4e51-9a46-bd230226031c"
 DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+OpticSim = "24114763-4efb-45e7-af0e-cde916beb153"
 OpticsBase = "0a174593-c395-4975-8599-97e6c4e949e6"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
@@ -9,10 +10,14 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 WaveOpticsPropagation = "c4c7a1f9-3adc-4a73-843a-d378b6c86436"
 
 [sources]
+# Registered OpticSim 0.7.1 pins JET 0.9 (Julia 1.11 only); its main branch supports
+# Julia 1.12+, which BeamletOptics needs. Pinned to a commit of main.
+OpticSim = {rev = "9a03f0b126f230e429eadea10f547ba690c8a774", url = "https://github.com/brianguenter/OpticSim.jl"}
 OpticsBase = {path = "../.."}
 
 [compat]
 BeamletOptics = "0.13.10"
 DelaunayTriangulation = "1"
+OpticSim = "0.7.1"
 WaveOpticsPropagation = "0.4"
 julia = "1.12"

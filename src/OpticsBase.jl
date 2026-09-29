@@ -4,7 +4,8 @@
 Common interface package for an ecosystem of interoperable optical solvers.
 
 Solvers do not know each other, only `OpticsBase`. Optical propagation data is handed
-from one solver to the next via exchange formats (subtypes of `AbstractOpticalField`)
+from one solver to the next via exchange formats (subtypes of `AbstractOpticalData`:
+fields and ray bundles)
 at ports, i.e. surfaces with an explicit frame in global coordinates. `OpticsBase`
 contains no solver code: only abstract types, exchange formats, traits, ports,
 conventions and generic converters.
@@ -24,18 +25,19 @@ using CommonSolve: CommonSolve, solve, init, solve!, step!
 export solve, init, solve!, step!
 
 # Abstract types and traits
-export AbstractOpticalField, AbstractPort, AbstractGrid, AbstractPropagationAlgorithm
+export AbstractOpticalData, AbstractOpticalField, AbstractVectorField, AbstractScalarField
+export AbstractRayBundle, AbstractPort, AbstractGrid, AbstractPropagationAlgorithm
 export is_vectorial, is_coherent, total_power, input_representation, output_representation
 
 # Ports and exchange formats
-export PlanarPort, RegularGrid, SampledField, RayBundle, PlaneWaveSpectrum
+export PlanarPort, RegularGrid, SampledField, PlaneWaveSpectrum, RayBundle, PolarizedRayBundle
 
 # Problem interface
 export PropagationProblem, PropagationSolution, MissingConverterError
 export is_compatible, check_compatibility
 
 # Converters
-export AbstractFieldConverter, convert_field, GaussianBeamletSummation
+export AbstractFieldConverter, convert_field
 export PlaneWaveSummation, PlaneWaveDecomposition, DebyeWolf
 
 # Free-space propagation (numerics via the WaveOpticsPropagation extension)
@@ -47,7 +49,7 @@ export FreeSpace, AngularSpectrumMethod
         public port, wavelength, VACUUM_IMPEDANCE, power_normalization,
                origin, local_axes, normal, refractive_index, to_local, to_global,
                ray_basis, jones_to_global, circular_jones,
-               spacing, coordinates, grid, field_array, has_beamlets,
+               spacing, coordinates, grid, field_array, positions, directions,
                __solve, __init, __convert_field
         """))
 end
@@ -61,7 +63,6 @@ include("RayBundle.jl")
 include("PlaneWaveSpectrum.jl")
 include("Problem.jl")
 include("Converters.jl")
-include("BeamletSummation.jl")
 include("FreeSpace.jl")
 include("PlaneWaveSummation.jl")
 include("PlaneWaveDecomposition.jl")

@@ -48,6 +48,22 @@ the port frame in their extension.
 
 See [`AbstractPort`](@ref) and [`PlanarPort`](@ref).
 
+## Physical validity at the port
+
+`OpticsBase` checks that representations fit together (via [`input_representation`](@ref),
+[`output_representation`](@ref) and [`check_compatibility`](@ref)), not that they are
+physically valid where they are handed over. The user chooses the ports so that the
+representation holds there:
+
+- A [`RayBundle`](@ref) describes the field as local plane waves (geometrical optics). It
+  must not be handed over at or near a caustic, e.g. in the focal region. To get there,
+  hand the rays over upstream and use a converter that leaves geometrical optics, such as
+  [`DebyeWolf`](@ref).
+- A [`SampledField`](@ref) must resolve its phase: the phase difference between
+  neighboring samples stays below ``\pi``. Strongly curved wavefronts, e.g. a converging
+  spherical wave far from its focus, need a port where the field is compact, or a
+  representation on directions ([`PlaneWaveSpectrum`](@ref)).
+
 ## Phase reference
 
 - Stored complex amplitudes exclude only the temporal carrier ``\exp(-i\omega t)``. They

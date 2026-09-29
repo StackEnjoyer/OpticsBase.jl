@@ -1,5 +1,5 @@
 """
-    PlaneWaveSpectrum{N, T <: Real, P <: AbstractPort} <: AbstractOpticalField
+    PlaneWaveSpectrum{N, T <: Real, P <: AbstractPort} <: AbstractOpticalField{N}
 
 A discrete spectrum of homogeneous plane waves at a port: one monochromatic, coherent
 component, stored as a struct of arrays with one entry per sample (plane wave). `N = 1` is
@@ -27,7 +27,7 @@ Implements the [`AbstractOpticalField`](@ref) interface: [`port`](@ref),
 (`N == 3`), [`is_coherent`](@ref) (always `true`). Further: `length(spectrum)` (number of
 samples). Converters: [`PlaneWaveSummation`](@ref) evaluates the spectrum on a grid.
 """
-struct PlaneWaveSpectrum{N, T <: Real, P <: AbstractPort} <: AbstractOpticalField
+struct PlaneWaveSpectrum{N, T <: Real, P <: AbstractPort} <: AbstractOpticalField{N}
     port::P
     wavelength::T
     direction::Vector{SVector{3, T}}
@@ -185,7 +185,6 @@ Base.length(s::PlaneWaveSpectrum) = length(s.direction)
 
 port(s::PlaneWaveSpectrum) = s.port
 wavelength(s::PlaneWaveSpectrum) = s.wavelength
-is_vectorial(::PlaneWaveSpectrum{N}) where {N} = N == 3
 is_coherent(::PlaneWaveSpectrum) = true
 
 """

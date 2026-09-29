@@ -28,7 +28,9 @@ Architecture role models:
    Exception (plans/chain-bmo-fourier.md, D3/D4): BeamletOptics must stay unchanged and
    WaveOpticsPropagation is third party, so their glue lives here as
    `OpticsBaseBeamletOpticsExt` and `OpticsBaseWaveOpticsPropagationExt`; the BMO glue may
-   move into BMO once OpticsBase is registered.
+   move into BMO once OpticsBase is registered. Further temporary exception
+   (plans/field-hierarchy.md): OpticSim.jl (third party) glue lives here as
+   `OpticsBaseOpticSimExt` (rays in/out); it moves into the solver package later, too.
 4. **Converters are explicit objects**, never implicit `Base.convert`. They carry their
    parameters (grid, sampling, number of modes, coherence assumption), because
    conversions are almost always approximations.
@@ -47,13 +49,21 @@ Architecture role models:
 ## Exchange formats (initial scope)
 
 ```julia
-abstract type AbstractOpticalField end
+abstract type AbstractOpticalData end                       # root; interface port, wavelength
+abstract type AbstractOpticalField{N} <: AbstractOpticalData end   # Maxwell fields, N = 1 scalar, N = 3 vectorial
+  # aliases AbstractScalarField = AbstractOpticalField{1}, AbstractVectorField = AbstractOpticalField{3}
+abstract type AbstractRayBundle <: AbstractOpticalData end  # geometrical optics; positions, directions
 
-RayBundle{N}       # one coherent component: per ray pos, dir, opl, power, unit phasor ∈ ℂᴺ, optional beamlet Q; λ + port per bundle
-SampledField{N}    # complex field on plane/volume; N = 1 scalar, N = 3 vectorial; with grid + port
-PlaneWaveSpectrum  # samples on the k-sphere: unit directions, spectral density ℰ per solid angle (V/m/sr), solid angles (sr); λ + port (origin = phase reference)
+RayBundle          # <: AbstractRayBundle: per ray position and direction; λ + port per bundle (what ray tracers exchange)
+PolarizedRayBundle # <: AbstractRayBundle: adds per ray opl, power, unit transverse 3D polarization vector (input of DebyeWolf)
+SampledField{N}    # <: AbstractOpticalField{N}: complex field on plane/volume; N = 1 scalar, N = 3 vectorial; with grid + port
+PlaneWaveSpectrum  # <: AbstractOpticalField{N}: samples on the k-sphere: unit directions, spectral density ℰ per solid angle (V/m/sr), solid angles (sr); λ + port (origin = phase reference)
 ModalField         # reference to a mode basis + complex coefficients (later)
 ```
+
+Fields go to field solvers, rays go to other ray tracers or into a ray-to-field converter;
+OpticsBase knows no solver, so beamlets, detectors etc. never appear in a format. Rays must
+not be handed over at caustics (see "Physical validity at the port" in `conventions.md`).
 
 `PlaneWaveSpectrum` is the central node between the ray and the wave world: a ray is a
 k vector with amplitude and phase. Format names describe the representation, not the
@@ -67,7 +77,9 @@ Every handover happens at a port: a surface in global coordinates with origin, n
 and local axes. The port also fixes the polarization basis and the medium (refractive
 index). No field handover without a port. OpticsBase has no global optical axis. The
 local frame `(u, v, n)` is right-handed, `n` points downstream (`n·k > 0`), and `u` is
-always passed explicitly.
+always passed explicitly. OpticsBase checks that representations fit together, not that
+they are physically valid at the port: the user chooses ports where the representation
+holds (no rays at caustics, no undersampled phase in sampled fields).
 
 ## Conventions
 
@@ -107,18 +119,19 @@ When a convention is unclear: do not guess. Ask me and record the decision in
 
 ## Converters (initial scope)
 
-- `RayBundle` → `SampledField`: coherent summation of Gaussian beamlets onto a grid at
-  the port.
+- No beamlet summation in OpticsBase: BMO sums its own beamlets onto a `SampledField`
+  (`SampledField(detector, grid)` in the BMO glue extension); rays are exchanged as
+  `RayBundle`, never as beamlets (plans/field-hierarchy.md, D3/D5).
 - `SampledField` → `PlaneWaveSpectrum`: FFT (`PlaneWaveDecomposition`, FFTW extension);
   NUFFT later.
-- `RayBundle` → `PlaneWaveSpectrum`: Debye approximation for converging bundles
+- `PolarizedRayBundle` → `PlaneWaveSpectrum`: Debye approximation for converging bundles
   (`DebyeWolf`), solid angles per ray from Voronoi cells (DelaunayTriangulation
   extension) or given explicitly.
 - `PlaneWaveSpectrum` → `SampledField` (focus/far field, planes and volumes): direct
   summation (`PlaneWaveSummation`, exact, O(M·N_points)); chirp-z for single planes and
   3D/4D gridding (NUFFT, cf. Lorbeer et al., Opt. Express 23, 3341 (2015)) later as fast
   paths (plans/plane-wave-spectrum.md, D4).
-- Later: `SampledField` → `RayBundle` (Gaussian beam decomposition or phase gradient).
+- Later: `SampledField` → `PolarizedRayBundle` (Gaussian beam decomposition or phase gradient).
   Prototype early — this return path shows whether the abstractions hold.
 
 ## Shared test suite

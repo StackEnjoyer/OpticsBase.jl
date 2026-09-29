@@ -1,8 +1,8 @@
 # First chain: BeamletOptics → OpticsBase → Fourier solver
 #
-# A Gaussian beamlet is traced with BeamletOptics.jl to a detector, handed over as a
-# `RayBundle`, summed onto a grid (`SampledField`) and propagated further with the
-# angular-spectrum method of WaveOpticsPropagation.jl. The result is compared with the
+# A Gaussian beamlet is traced with BeamletOptics.jl to a detector, its field is sampled on
+# a grid (`SampledField`, using BeamletOptics' own beamlet sum) and propagated further with
+# the angular-spectrum method of WaveOpticsPropagation.jl. The result is compared with the
 # analytic Gaussian beam and with BeamletOptics' own field at the output plane.
 #
 # Run from the repository root with the integration environment:
@@ -37,13 +37,10 @@ function traced_detector(y)
 end
 detector_A = traced_detector(yA)
 
-# --- 2. Handover: detector hits → RayBundle at a port in the detector plane --------------
-bundle = RayBundle(detector_A)            # one vectorial beamlet with its matrix Q
-port_A = OB.port(bundle)                  # n = +y (downstream), u = +x
-
-# --- 3. Converter: coherent beamlet summation onto a grid at port A ----------------------
+# --- 2./3. Handover: the detector's beamlet field on a grid at a port in the detector plane -
 grid = RegularGrid((256, 256), (w0 / 16, w0 / 16))
-field_A = convert_field(GaussianBeamletSummation(grid), bundle)
+field_A = SampledField(detector_A, grid)  # vectorial (astigmatic beamlet), BMO's own sum
+port_A = OB.port(field_A)                 # n = +y (downstream), u = +x
 
 # --- 4. Fourier solver: free-space propagation to a parallel port B ----------------------
 port_B = PlanarPort(OB.origin(port_A) + zAB * OB.normal(port_A), OB.normal(port_A),

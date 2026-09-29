@@ -30,7 +30,8 @@ with(v, i, x) = (w = collect(v); w[i] = x; w)
 @testset "scalar spectrum" begin
     s = scalar_spectrum()
     @test s isa PlaneWaveSpectrum{1, Float64}
-    @test s isa AbstractOpticalField
+    @test s isa AbstractScalarField
+    @test PlaneWaveSpectrum{3} <: AbstractVectorField <: AbstractOpticalData
     @test length(s) == 3
     @test !is_vectorial(s)
     @test is_coherent(s)

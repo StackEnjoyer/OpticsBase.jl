@@ -1,11 +1,11 @@
 # convert_field flow with test-local mock fields and converters.
 
-struct MockA{P <: AbstractPort} <: AbstractOpticalField
+struct MockA{P <: AbstractPort} <: AbstractOpticalField{1}
     port::P
 end
 OpticsBase.port(f::MockA) = f.port
 
-struct MockB{P <: AbstractPort} <: AbstractOpticalField
+struct MockB{P <: AbstractPort} <: AbstractOpticalField{1}
     port::P
 end
 OpticsBase.port(f::MockB) = f.port

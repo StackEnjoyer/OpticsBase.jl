@@ -1,6 +1,6 @@
 """
     PropagationProblem(field, system, port_out)
-    PropagationProblem{F <: AbstractOpticalField, S, P <: AbstractPort}
+    PropagationProblem{F <: AbstractOpticalData, S, P <: AbstractPort}
 
 A propagation task: propagate the input `field` through `system` and return the result at
 the output port `port_out`. Solve it with `solve(prob, alg)` for an
@@ -8,9 +8,10 @@ the output port `port_out`. Solve it with `solve(prob, alg)` for an
 
 # Fields
 
-  - `field::F`: input field, an [`AbstractOpticalField`](@ref) given at its own input port
+  - `field::F`: input, an [`AbstractOpticalData`](@ref) (field or ray bundle) given at its
+    own input port
   - `system::S`: description of the optical system. Its type is defined by the solver
-    package (e.g. a BeamletOptics system, a propagation distance); `OpticsBase` does not
+    package (e.g. a ray tracer's system, a propagation distance); `OpticsBase` does not
     interpret it.
   - `port_out::P`: the [`AbstractPort`](@ref) at which the output field must be given.
     `solve` checks `port(sol.field) == port_out`. The output is given in the medium of
@@ -21,7 +22,7 @@ field is not copied. No checks are done at construction: whether `field` fits an
 algorithm depends on the algorithm and is checked by `solve`/`init` (see
 [`check_compatibility`](@ref)).
 """
-struct PropagationProblem{F <: AbstractOpticalField, S, P <: AbstractPort}
+struct PropagationProblem{F <: AbstractOpticalData, S, P <: AbstractPort}
     field::F
     system::S
     port_out::P
@@ -29,7 +30,7 @@ end
 
 """
     PropagationSolution(field, prob, alg, stats = nothing)
-    PropagationSolution{F <: AbstractOpticalField, Pr <: PropagationProblem,
+    PropagationSolution{F <: AbstractOpticalData, Pr <: PropagationProblem,
                         A <: AbstractPropagationAlgorithm, St}
 
 Result of `solve(prob, alg)`. Solver packages construct it at the end of
@@ -39,13 +40,13 @@ at `prob.port_out`.
 
 # Fields
 
-  - `field::F`: output field, an [`AbstractOpticalField`](@ref) given at `prob.port_out`
+  - `field::F`: output, an [`AbstractOpticalData`](@ref) given at `prob.port_out`
     and of type `output_representation(alg)`
   - `prob::Pr`: the [`PropagationProblem`](@ref) that was solved
   - `alg::A`: the [`AbstractPropagationAlgorithm`](@ref) that solved it
   - `stats::St`: solver-specific statistics or diagnostics, `nothing` if there are none
 """
-struct PropagationSolution{F <: AbstractOpticalField, Pr <: PropagationProblem,
+struct PropagationSolution{F <: AbstractOpticalData, Pr <: PropagationProblem,
     A <: AbstractPropagationAlgorithm, St}
     field::F
     prob::Pr
@@ -54,7 +55,7 @@ struct PropagationSolution{F <: AbstractOpticalField, Pr <: PropagationProblem,
 end
 
 # `stats` defaults to `nothing` (documented in the type docstring).
-PropagationSolution(field::AbstractOpticalField, prob::PropagationProblem,
+PropagationSolution(field::AbstractOpticalData, prob::PropagationProblem,
     alg::AbstractPropagationAlgorithm) = PropagationSolution(field, prob, alg, nothing)
 
 """
@@ -86,24 +87,24 @@ end
 const _FieldStage = Union{AbstractPropagationAlgorithm, AbstractFieldConverter}
 
 """
-    is_compatible(field::AbstractOpticalField, stage) -> Bool
+    is_compatible(data::AbstractOpticalData, stage) -> Bool
 
 Returns `true` if the propagation algorithm or converter `stage` accepts `field` as input,
 i.e. `field isa input_representation(stage)`. Pipelines use it to check whether stages
 fit together without running them.
 """
-function is_compatible(field::AbstractOpticalField, stage::_FieldStage)
+function is_compatible(field::AbstractOpticalData, stage::_FieldStage)
     return field isa input_representation(stage)
 end
 
 """
-    check_compatibility(field::AbstractOpticalField, stage)
+    check_compatibility(data::AbstractOpticalData, stage)
 
 Throws a [`MissingConverterError`](@ref) if the propagation algorithm or converter `stage`
 does not accept `field` (see [`is_compatible`](@ref)), otherwise returns `nothing`. Called
 by `solve`, `init` and [`convert_field`](@ref) before any solver or converter code runs.
 """
-function check_compatibility(field::AbstractOpticalField, stage::_FieldStage)
+function check_compatibility(field::AbstractOpticalData, stage::_FieldStage)
     is_compatible(field, stage) ||
         throw(MissingConverterError(typeof(field), input_representation(stage)))
     return nothing

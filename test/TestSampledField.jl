@@ -10,7 +10,9 @@ const λ = 1.064e-6
     E = rand(ComplexF64, 8, 6)
     f = SampledField(E, g, PORT, λ)
     @test f isa SampledField{1, 2, Float64}
-    @test f isa AbstractOpticalField
+    @test f isa AbstractOpticalField{1}
+    @test f isa AbstractScalarField && !(f isa AbstractVectorField)
+    @test SampledField{3} <: AbstractVectorField <: AbstractOpticalData
     @test size(OB.field_array(f)) == (8, 6, 1)
     # No copy: the stored array shares memory with the input
     @test vec(OB.field_array(f)) == vec(E)

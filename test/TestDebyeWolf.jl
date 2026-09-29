@@ -31,11 +31,11 @@ function gauss_legendre(m)
 end
 
 # Rays from port A towards the focus along the directions s, in phase at the focus
-function converging_rays(s, power, jones; beamlet = nothing)
+function converging_rays(s, power, jones)
     positions = [-(L / d[3]) * d for d in s]
     opl = [opl0 - n_med * norm(p) for p in positions]
     phasor = [OB.jones_to_global(portA, d, J) for (d, J) in zip(s, jones)]
-    return RayBundle(portA, λ, positions, s, opl, power, phasor; beamlet)
+    return PolarizedRayBundle(portA, λ, positions, s, opl, power, phasor)
 end
 
 direction(θ, φ) = SVector(sin(θ) * cos(φ), sin(θ) * sin(φ), cos(θ))
@@ -119,7 +119,7 @@ relerr(E, Eref) = maximum(abs, E - Eref) / maximum(abs, Eref)
     p = SVector(0.5e-3, 0, -1e-3)
     d = normalize(-p)
     e = OB.jones_to_global(portA, d, SVector(1.0, 0))
-    bundle = RayBundle(portA, λ, [p], [d], [2e-3], [1e-3], [e])
+    bundle = PolarizedRayBundle(portA, λ, [p], [d], [2e-3], [1e-3], [e])
     pws = convert_field(DebyeWolf(portF; solid_angle = [1e-4]), bundle)
     @test pws isa PlaneWaveSpectrum{3}
     @test OB.port(pws) === portF
@@ -132,22 +132,6 @@ relerr(E, Eref) = maximum(abs, E - Eref) / maximum(abs, Eref)
     @test total_power(pws) ≈ 1e-3 rtol = 1e-12
 end
 
-@testset "scalar rays and beamlets" begin
-    s = [direction(0.3, φ) for φ in (0.0, 2.0, 4.0)]
-    rays = converging_rays(s, fill(1e-4, 3), fill(SVector(1.0, 0), 3))
-    positions = rays.position
-    scalar = RayBundle(portA, λ, positions, s, rays.opl, rays.power, fill(1.0 + 0im, 3))
-    pws = convert_field(DebyeWolf(portF; solid_angle = fill(1e-3, 3)), scalar)
-    @test pws isa PlaneWaveSpectrum{1}
-    @test total_power(pws) ≈ 3e-4 rtol = 1e-12
-    # Beamlets are converted like their chief rays; Q is ignored
-    beamlets = converging_rays(s, fill(1e-4, 3), fill(SVector(1.0, 0), 3);
-        beamlet = fill(1e3im, 3))
-    a = convert_field(DebyeWolf(portF; solid_angle = fill(1e-3, 3)), beamlets)
-    b = convert_field(DebyeWolf(portF; solid_angle = fill(1e-3, 3)), rays)
-    @test a.amplitude == b.amplitude
-    @test a.weight == b.weight
-end
 
 @testset "Richards–Wolf, sin α = 0.9, $pol polarization" for pol in (:x, :radial)
     bundle, w = aplanatic_bundle(pol === :x ? x_jones : radial_jones)
@@ -189,6 +173,9 @@ end
     field = SampledField(zeros(ComplexF64, 4, 4), RegularGrid((4, 4), (1e-6, 1e-6)),
         portF, λ)
     @test_throws MissingConverterError convert_field(DebyeWolf(portF), field)
+    # Geometry-only rays carry no power, phase or polarization
+    geometry = RayBundle(portA, λ, rays.position, rays.direction)
+    @test_throws MissingConverterError convert_field(DebyeWolf(portF; solid_angle = w), geometry)
 end
 
 @testset "missing DelaunayTriangulation" begin

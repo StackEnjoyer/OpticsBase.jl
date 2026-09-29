@@ -11,7 +11,6 @@ const TEST_MODULES = [
     "TestRayBundle",
     "TestProblem",
     "TestConverters",
-    "TestBeamletSummation",
     "TestFreeSpace",
     "TestPlaneWaveSpectrum",
     "TestPlaneWaveSummation",

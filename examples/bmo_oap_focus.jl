@@ -2,7 +2,7 @@
 #
 # A collimated, linearly polarized beam is traced with BeamletOptics.jl as polarized rays
 # over a 90° off-axis parabolic mirror (OAP) to a detector in front of the focus. The hits
-# are handed over as a `RayBundle`, converted into plane waves by `DebyeWolf` (Debye
+# are handed over as a `PolarizedRayBundle`, converted into plane waves by `DebyeWolf` (Debye
 # approximation, solid angles from Voronoi cells) and summed on a grid in the focal plane.
 # The result is compared with the same computation from analytic mirror rays with exact
 # solid angles.
@@ -47,8 +47,8 @@ end
 BMO.solve_system!(BMO.StaticSystem([oap, detector]),
     BMO.CollimatedSource(beams, D, [rfl, y0, 0.0], [0.0, 1, 0]))
 
-# --- 2. Handover: detector hits → RayBundle (BMO rays carry no power: pass it) -------------
-bundle = RayBundle(detector; power = P0)
+# --- 2. Handover: detector hits → PolarizedRayBundle (BMO rays carry no power) ---
+bundle = PolarizedRayBundle(detector; power = P0)
 
 # --- 3. Debye: rays → plane waves at a port in the focus ----------------------------------
 port_F = PlanarPort(F, [-1.0, 0, 0], [0.0, 0, 1])   # n along the central ray, u along E_in
@@ -85,7 +85,7 @@ function reference_spectrum(port_A; nr = 64, nφ = 128)
             e = reflect_polarization(SVector(E_in...), SVector(0.0, 1, 0), d),
             w = dA / norm(F - q)^2)                 # dΩ = dA/‖q − F‖² for a paraboloid
     end
-    ref = RayBundle(port_A, λ, [r.p for r in rays], [r.d for r in rays],
+    ref = PolarizedRayBundle(port_A, λ, [r.p for r in rays], [r.d for r in rays],
         [r.opl for r in rays], [r.P for r in rays], [r.e for r in rays])
     return convert_field(DebyeWolf(port_F; solid_angle = [r.w for r in rays]), ref)
 end

@@ -10,7 +10,7 @@ solver package supplies the algorithm:
 
 ```julia
 prob = PropagationProblem(field_in, system, port_out)
-sol = solve(prob, alg)   # sol.field isa AbstractOpticalField, given at port_out
+sol = solve(prob, alg)   # sol.field isa AbstractOpticalData, given at port_out
 ```
 
 `OpticsBase` owns `solve` and `init` for propagation problems. They check that the input

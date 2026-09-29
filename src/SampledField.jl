@@ -1,5 +1,5 @@
 """
-    SampledField{N,D,T,A,G,P} <: AbstractOpticalField
+    SampledField{N,D,T,A,G,P} <: AbstractOpticalField{N}
 
 Complex field sampled on a grid in the local coordinates of a port. `N = 1` is a scalar
 field, `N = 3` a vectorial field with 3D field vectors; `D` is the grid dimension (2 for a
@@ -47,7 +47,7 @@ Implements the [`AbstractOpticalField`](@ref) interface: [`port`](@ref),
 component). Further accessors: [`grid`](@ref), [`field_array`](@ref).
 """
 struct SampledField{N, D, T <: Real, A <: AbstractArray{Complex{T}}, G <: AbstractGrid{D},
-    P <: AbstractPort} <: AbstractOpticalField
+    P <: AbstractPort} <: AbstractOpticalField{N}
     E::A
     grid::G
     port::P
@@ -106,7 +106,6 @@ field_array(f::SampledField) = f.E
 
 port(f::SampledField) = f.port
 wavelength(f::SampledField) = f.wavelength
-is_vectorial(::SampledField{N}) where {N} = N == 3
 is_coherent(::SampledField) = true
 
 """

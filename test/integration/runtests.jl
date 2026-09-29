@@ -1,4 +1,5 @@
-# Integration tests with the heavy weak dependencies (BeamletOptics, WaveOpticsPropagation).
+# Integration tests with the heavy weak dependencies (BeamletOptics, WaveOpticsPropagation,
+# OpticSim; the OpticSim modules load it themselves).
 # They live in their own environment so the core suite stays light and runs on Julia 1.10.
 #
 # Run from the repository root (all modules, or a subset by name):
@@ -15,6 +16,8 @@ const TEST_MODULES = [
     "TestBeamletOptics",
     "TestChain",
     "TestFocus",
+    "TestOpticSim",
+    "TestRayExchange",
 ]
 
 const SELECTED = isempty(ARGS) ? TEST_MODULES : ARGS
