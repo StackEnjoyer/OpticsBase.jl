@@ -28,7 +28,7 @@ export AbstractOpticalField, AbstractPort, AbstractGrid, AbstractPropagationAlgo
 export is_vectorial, is_coherent, total_power, input_representation, output_representation
 
 # Ports and exchange formats
-export PlanarPort, RegularGrid, SampledField, RayBundle
+export PlanarPort, RegularGrid, SampledField, RayBundle, PlaneWaveSpectrum
 
 # Problem interface
 export PropagationProblem, PropagationSolution, MissingConverterError
@@ -36,6 +36,7 @@ export is_compatible, check_compatibility
 
 # Converters
 export AbstractFieldConverter, convert_field, GaussianBeamletSummation
+export PlaneWaveSummation, PlaneWaveDecomposition, DebyeWolf
 
 # Free-space propagation (numerics via the WaveOpticsPropagation extension)
 export FreeSpace, AngularSpectrumMethod
@@ -57,13 +58,19 @@ include("Ports.jl")
 include("Grids.jl")
 include("SampledField.jl")
 include("RayBundle.jl")
+include("PlaneWaveSpectrum.jl")
 include("Problem.jl")
 include("Converters.jl")
 include("BeamletSummation.jl")
 include("FreeSpace.jl")
+include("PlaneWaveSummation.jl")
+include("PlaneWaveDecomposition.jl")
+include("DebyeWolf.jl")
 
 function __init__()
     _register_error_hints()
+    _register_fftw_hint()
+    _register_delaunay_hint()
     return nothing
 end
 

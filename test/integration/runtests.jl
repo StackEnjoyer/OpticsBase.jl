@@ -14,6 +14,7 @@ const TEST_MODULES = [
     "TestWaveOpticsPropagation",
     "TestBeamletOptics",
     "TestChain",
+    "TestFocus",
 ]
 
 const SELECTED = isempty(ARGS) ? TEST_MODULES : ARGS

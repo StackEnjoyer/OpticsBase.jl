@@ -13,6 +13,10 @@ const TEST_MODULES = [
     "TestConverters",
     "TestBeamletSummation",
     "TestFreeSpace",
+    "TestPlaneWaveSpectrum",
+    "TestPlaneWaveSummation",
+    "TestPlaneWaveDecomposition",
+    "TestDebyeWolf",
     "TestAqua",
 ]
 
