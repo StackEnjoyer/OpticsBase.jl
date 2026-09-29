@@ -27,6 +27,12 @@ RayBundle
 has_beamlets
 ```
 
+## Plane-wave spectra
+
+```@docs
+PlaneWaveSpectrum
+```
+
 ## Sampled fields
 
 ```@docs

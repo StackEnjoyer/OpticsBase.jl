@@ -31,3 +31,26 @@ __convert_field
 ```@docs
 GaussianBeamletSummation
 ```
+
+## Plane waves
+
+A [`PlaneWaveSpectrum`](@ref) is the node between rays and waves. Converging rays become
+plane waves with [`DebyeWolf`](@ref), a sampled field is decomposed with
+[`PlaneWaveDecomposition`](@ref), and [`PlaneWaveSummation`](@ref) evaluates any spectrum
+on a planar or volume grid at any port in the same medium, e.g. in a focus:
+
+```julia
+using OpticsBase, DelaunayTriangulation   # solid angles per ray (extension)
+
+spectrum = convert_field(DebyeWolf(port_focus), bundle)        # RayBundle → spectrum
+focus = convert_field(PlaneWaveSummation(grid), spectrum)      # → SampledField at port_focus
+
+using FFTW                                                     # FFT backend (extension)
+spectrum = convert_field(PlaneWaveDecomposition(), field)      # SampledField → spectrum
+```
+
+```@docs
+DebyeWolf
+PlaneWaveDecomposition
+PlaneWaveSummation
+```

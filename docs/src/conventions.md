@@ -79,7 +79,7 @@ BeamletOptics.jl). The same factor is used by every format and converter, see
 
 The formula is exact for fields that propagate along the port normal and a paraxial
 approximation otherwise. ``\mathbf{E}`` carries no obliquity weighting; formats that need
-one (e.g. angular spectra) carry it in their own sample weights.
+one (plane-wave spectra) carry it in their own sample weights, see below.
 
 ## Polarization
 
@@ -113,3 +113,29 @@ Sample ``i`` along an axis with ``N`` samples and spacing ``\Delta`` lies at
 ``(i - (N \div 2 + 1))\,\Delta``, so the port origin sits at the center of the grid in the
 FFT sense (the `fftshift` center). Grids have no offset of their own: to move a grid,
 move the port. See [`RegularGrid`](@ref) and [`coordinates`](@ref).
+
+## Plane-wave spectra
+
+A plane-wave spectrum stores samples on the sphere of directions: unit directions
+``\mathbf{s}_j`` (all with ``\mathbf{s}_j\cdot\mathbf{n} > 0``), spectral densities
+``\boldsymbol{\mathcal{E}}_j`` per solid angle in V/m/sr and solid angles ``w_j`` in sr.
+It represents the field
+
+```math
+\mathbf{E}(\mathbf{r}) = \sum_j w_j\, \boldsymbol{\mathcal{E}}_j
+\exp\big(i k\, \mathbf{s}_j\cdot(\mathbf{r} - \mathbf{r}_0)\big), \qquad k = 2\pi n/\lambda,
+```
+
+in the homogeneous medium of the port, with the port origin ``\mathbf{r}_0`` as phase
+reference. The solid-angle measure makes the samples independent of the port orientation.
+The power is the exact flux through a plane,
+
+```math
+P = \kappa\, \lambda_m^2 \sum_j w_j \lVert \boldsymbol{\mathcal{E}}_j \rVert^2,
+\qquad \lambda_m = \lambda/n,
+```
+
+which differs from the paraxial power of a sampled field of the same wave by
+``O(\theta^2)``. Converging rays become plane waves in the Debye approximation with the
+factor ``-i``, the phase anomaly of the focus under ``\exp(-i\omega t)``. See
+[`PlaneWaveSpectrum`](@ref) and [`DebyeWolf`](@ref).

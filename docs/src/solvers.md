@@ -44,6 +44,24 @@ field = convert_field(GaussianBeamletSummation(grid), bundle)       # → Sample
 RayBundle(::Main.BeamletOptics.Detector)
 ```
 
-A complete, runnable chain (BeamletOptics beamlet → detector → `RayBundle` → beamlet
-summation → angular-spectrum propagation, checked against the analytic Gaussian beam) is
-in [`examples/bmo_to_fourier.jl`](https://github.com/StackEnjoyer/OpticsBase.jl/blob/main/examples/bmo_to_fourier.jl).
+Two complete, runnable chains:
+
+  - [`examples/bmo_to_fourier.jl`](https://github.com/StackEnjoyer/OpticsBase.jl/blob/main/examples/bmo_to_fourier.jl):
+    BeamletOptics beamlet → detector → `RayBundle` → beamlet summation → angular-spectrum
+    propagation, checked against the analytic Gaussian beam.
+  - [`examples/bmo_oap_focus.jl`](https://github.com/StackEnjoyer/OpticsBase.jl/blob/main/examples/bmo_oap_focus.jl):
+    polarized BeamletOptics rays over an off-axis parabolic mirror → detector →
+    `RayBundle` → [`DebyeWolf`](@ref) → [`PlaneWaveSummation`](@ref): the vectorial focal
+    field, checked against analytic mirror rays.
+
+## Numerical backends
+
+Two converters use light optional packages for their numerics:
+
+  - [`PlaneWaveDecomposition`](@ref) needs FFTW.jl (`using FFTW`, extension
+    `OpticsBaseFFTWExt`).
+  - [`DebyeWolf`](@ref) computes solid angles per ray with DelaunayTriangulation.jl
+    (`using DelaunayTriangulation`, extension `OpticsBaseDelaunayTriangulationExt`), unless
+    they are given explicitly.
+
+Without the package, the conversion throws a `MethodError` whose message names it.

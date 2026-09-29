@@ -1,6 +1,6 @@
 # PlaneWaveSpectrum and a high-NA focus chain
 
-**Status:** approved · **Tier:** full
+**Status:** implemented · **Tier:** full
 
 ## Goal
 
@@ -269,6 +269,34 @@ pre-wired. Julia ≥ 1.10 syntax only. Single-module tests:
   Build all input fields analytically on the grid; the round trips use
   `PlaneWaveSummation` from W1.
 - Do not touch `src/FreeSpace.jl` or `__init__`.
+
+</details>
+
+<details>
+<summary>Deviations</summary>
+
+- W1: `PlaneWaveSummation` rejects grids other than 2D/3D at construction; the result
+  has the element type of the spectrum; the tests call the internal `_plane_wave_sum`
+  with several chunk sizes. The docstring calls `total_power` the quadrature of the exact
+  flux of the continuous spectrum (cross terms of distinct plane waves vanish only there).
+- W2 (acceptance corrected, implementation as planned): with `pad_factor = p`, a plane
+  wave filling the window becomes a sampled sinc, so its peak bin carries A/p², not A;
+  the test checks that and the vanishing unpadded bins. The Gaussian round trip runs on
+  192 × 192 (edges at ±6w₀) instead of 64 × 64: truncation at ±2w₀ puts content beyond
+  k, which is correctly dropped as evanescent (error 1.5·10⁻³ there, 7·10⁻¹⁶ now).
+  Fields at non-planar ports get an `ArgumentError`.
+- W3: solid angles come from Voronoi cells clipped to the convex hull (the dual of the
+  Delaunay triangulation). They are unique also for cocircular points such as regular
+  grids, where barycentric Delaunay duals would depend on the arbitrary diagonals. The
+  Richards–Wolf tests use sin α = 0.9 in n = 1.5 (NA 1.35). Measured: Richards–Wolf
+  1.4·10⁻¹² (tolerance 10⁻⁸), E_z up to 36 % of max|E| (x polarization); Fibonacci rays
+  with Voronoi weights 2.0·10⁻³ (tolerance 2·10⁻²).
+- W4: measured NA 0.40 / 0.47 (u / v), rays within 0.16 nm of the focus (tolerance
+  25 nm), OPL spread 1.5·10⁻⁴ λ (tolerance 10⁻³ λ), deviation from the reference
+  2.0·10⁻³ (tolerance 2·10⁻²). Extra check: BMO's reflected polarization equals the
+  ideal-mirror formula of the reference within 10⁻⁹.
+- Integration: FFTW and DelaunayTriangulation are in the core test targets; `CLAUDE.md`
+  documents this and the new conventions and converters.
 
 </details>
 

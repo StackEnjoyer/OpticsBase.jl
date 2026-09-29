@@ -51,7 +51,7 @@ abstract type AbstractOpticalField end
 
 RayBundle{N}       # one coherent component: per ray pos, dir, opl, power, unit phasor ∈ ℂᴺ, optional beamlet Q; λ + port per bundle
 SampledField{N}    # complex field on plane/volume; N = 1 scalar, N = 3 vectorial; with grid + port
-PlaneWaveSpectrum  # samples on the k-sphere: k vectors, E vectors, weights (Jacobian/apodization), λ
+PlaneWaveSpectrum  # samples on the k-sphere: unit directions, spectral density ℰ per solid angle (V/m/sr), solid angles (sr); λ + port (origin = phase reference)
 ModalField         # reference to a mode basis + complex coefficients (later)
 ```
 
@@ -97,6 +97,10 @@ it and this summary in sync.
 - **Grids:** regular grids in port-local coordinates, sample i at (i − (N÷2 + 1))·Δ, i.e.
   the port origin is the fftshift center; no grid offsets (move the port instead).
 - **Vector fields:** transversality k·E = 0 must hold for all `PlaneWaveSpectrum` samples.
+- **Plane-wave spectra:** E(r) = Σ w ℰ exp(i k s·(r − r₀)), ℰ per solid angle, w in sr,
+  r₀ the port origin; `total_power` is the exact flux κ λₘ² Σ w ‖ℰ‖² (differs from the
+  paraxial `SampledField` power by O(θ²)). Converging rays become plane waves (Debye) with
+  the factor −i.
 
 When a convention is unclear: do not guess. Ask me and record the decision in
 `docs/src/conventions.md`.
@@ -105,10 +109,15 @@ When a convention is unclear: do not guess. Ask me and record the decision in
 
 - `RayBundle` → `SampledField`: coherent summation of Gaussian beamlets onto a grid at
   the port.
-- `SampledField` ↔ `PlaneWaveSpectrum`: FFT or NUFFT (via extension).
-- `PlaneWaveSpectrum` → `SampledField` (focus/far field): Debye–Wolf via chirp-z for single
-  planes; 3D/4D gridding (NUFFT, cf. Lorbeer et al., Opt. Express 23, 3341 (2015)) only
-  for volumes/time.
+- `SampledField` → `PlaneWaveSpectrum`: FFT (`PlaneWaveDecomposition`, FFTW extension);
+  NUFFT later.
+- `RayBundle` → `PlaneWaveSpectrum`: Debye approximation for converging bundles
+  (`DebyeWolf`), solid angles per ray from Voronoi cells (DelaunayTriangulation
+  extension) or given explicitly.
+- `PlaneWaveSpectrum` → `SampledField` (focus/far field, planes and volumes): direct
+  summation (`PlaneWaveSummation`, exact, O(M·N_points)); chirp-z for single planes and
+  3D/4D gridding (NUFFT, cf. Lorbeer et al., Opt. Express 23, 3341 (2015)) later as fast
+  paths (plans/plane-wave-spectrum.md, D4).
 - Later: `SampledField` → `RayBundle` (Gaussian beam decomposition or phase gradient).
   Prototype early — this return path shows whether the abstractions hold.
 
@@ -167,7 +176,9 @@ skip it while iterating on unrelated code.
 Integration tests with the heavy weak dependencies (BeamletOptics needs Julia ≥ 1.12,
 WaveOpticsPropagation pulls CUDA.jl and Zygote) live in their own environment
 `test/integration/` with its own `TEST_MODULES` list and a separate CI job on Julia 1.
-Never add these packages to the main test targets.
+Never add these packages to the main test targets. The light weak dependencies FFTW and
+DelaunayTriangulation are in the main test targets; test modules load them themselves
+(test missing-extension hints before the `using`).
 
 - Single integration module (or several), from the repo root:
   ```
