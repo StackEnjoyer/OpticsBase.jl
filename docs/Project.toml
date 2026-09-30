@@ -1,5 +1,4 @@
 [deps]
-BeamletOptics = "c387492b-ffec-4e51-9a46-bd230226031c"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 OpticsBase = "0a174593-c395-4975-8599-97e6c4e949e6"
 
@@ -7,5 +6,4 @@ OpticsBase = "0a174593-c395-4975-8599-97e6c4e949e6"
 OpticsBase = {path = ".."}
 
 [compat]
-BeamletOptics = "0.13.10"
 Documenter = "1"

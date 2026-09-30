@@ -19,5 +19,3 @@ lcov.info
 # Claude Code worktrees
 /.claude/worktrees/
 
-/test/integration/Manifest.toml
-/test/integration/Manifest-v*.toml

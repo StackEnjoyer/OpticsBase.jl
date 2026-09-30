@@ -1,45 +1,22 @@
 name = "OpticsBase"
 uuid = "0a174593-c395-4975-8599-97e6c4e949e6"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Hugo Uittenbosch <hugo.uittenbosch@dlr.de> and contributors"]
 
 [deps]
-CommonSolve = "38540f10-b2f7-11e9-35d8-d573e4eb0ff2"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
-[weakdeps]
-BeamletOptics = "c387492b-ffec-4e51-9a46-bd230226031c"
-DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
-FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
-OpticSim = "24114763-4efb-45e7-af0e-cde916beb153"
-WaveOpticsPropagation = "c4c7a1f9-3adc-4a73-843a-d378b6c86436"
-
-[extensions]
-OpticsBaseBeamletOpticsExt = "BeamletOptics"
-OpticsBaseDelaunayTriangulationExt = "DelaunayTriangulation"
-OpticsBaseFFTWExt = "FFTW"
-OpticsBaseOpticSimExt = "OpticSim"
-OpticsBaseWaveOpticsPropagationExt = "WaveOpticsPropagation"
-
 [compat]
 Aqua = "0.8"
-BeamletOptics = "0.13.10"
-CommonSolve = "0.2"
-DelaunayTriangulation = "1"
-FFTW = "1.8"
 LinearAlgebra = "1"
-OpticSim = "0.7.1"
 StaticArrays = "1"
 Test = "1"
-WaveOpticsPropagation = "0.4"
 julia = "1.10"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
-DelaunayTriangulation = "927a84f5-c5f4-47a5-9785-b46e178433df"
-FFTW = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Aqua", "DelaunayTriangulation", "FFTW", "Test"]
+test = ["Aqua", "Test"]

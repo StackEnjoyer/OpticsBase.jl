@@ -1,37 +1,42 @@
+```@meta
+CurrentModule = OpticsBase
+```
+
 # OpticsBase.jl
 
-`OpticsBase.jl` is a lightweight base package that enables an ecosystem of interoperable
-optical solvers. Solvers do not know each other, only `OpticsBase`: optical propagation
-data is passed from one solver to the next through well-defined exchange formats at
-ports.
-
-An example chain: a ray/beamlet tracer (e.g.
-[BeamletOptics.jl](https://github.com/JuliaPhysics/BeamletOptics.jl)) hands its result
-to a fiber solver, which in turn hands its output to a Fourier-optics solver, with
-`OpticsBase` in between each stage.
-
-## Design principles
-
-- **No solver code.** `OpticsBase` contains abstract types, exchange formats, traits,
-  ports, conventions and generic converters only.
-- **Minimal dependencies.** Only `StaticArrays`, `CommonSolve` and `LinearAlgebra` are
-  hard dependencies. Everything else (FFT, NUFFT, GPU, units) is loaded via package
-  extensions.
-- **Solvers connect via extensions.** Pairwise specialized converters live as package
-  extensions in the respective solver package, not in `OpticsBase`.
-- **Explicit converters.** Conversions between representations are almost always
-  approximations. Converters are therefore explicit objects that carry their parameters
-  (grid, sampling, number of modes, coherence assumption), never implicit
-  `Base.convert` methods.
-- **CommonSolve interface.** Solvers implement `solve`/`init`/`solve!`/`step!` from
-  [CommonSolve.jl](https://github.com/SciML/CommonSolve.jl) on `OpticsBase` problem types.
-- **Traits for compatibility checks.** Pipelines use traits to check whether stages fit
-  together and report a missing converter instead of computing something wrong.
-
-The binding physical conventions are listed on the [Conventions](@ref) page.
-
-## Package overview
+```@raw html
+<img src="assets/logo.svg" width="240" alt="OpticsBase.jl logo">
+```
 
 ```@docs
 OpticsBase
+```
+
+## A chain of solvers
+
+Every solver package offers methods that return a [`PlaneField`](@ref) and methods that
+take one. A chain is plain function composition:
+
+```julia
+using BeamletOptics, BeamletFibers, OpticsBase
+
+f1 = PlaneField(detector; size = (256, 256), spacing = (0.25e-6, 0.25e-6))  # beamlets → field
+f2, stats = propagate(f1, fiber, FDBPM(dz = 1e-6); grid)                   # BPM through a fiber
+src = WavefrontBeamletDecomposition(f2)                                     # field → beamlets
+```
+
+There is no solver interface to implement, no traits and no converter registry. A new
+solver package only needs to read and write the fields of `PlaneField` according to the
+[Conventions](@ref).
+
+## Reference
+
+```@docs
+PlaneField
+VACUUM_IMPEDANCE
+coordinates
+reference_phase
+power
+forward
+backward
 ```

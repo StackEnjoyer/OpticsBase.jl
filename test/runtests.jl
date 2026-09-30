@@ -1,23 +1,10 @@
 using OpticsBase
+using StaticArrays: SVector
 using Test
 
 # Test modules in execution order. Each entry is a file `test/<name>.jl`.
-# Run a subset via `Pkg.test(test_args=["TestPorts"])`; no arguments runs all of them.
-const TEST_MODULES = [
-    "TestInterface",
-    "TestPorts",
-    "TestGrids",
-    "TestSampledField",
-    "TestRayBundle",
-    "TestProblem",
-    "TestConverters",
-    "TestFreeSpace",
-    "TestPlaneWaveSpectrum",
-    "TestPlaneWaveSummation",
-    "TestPlaneWaveDecomposition",
-    "TestDebyeWolf",
-    "TestAqua",
-]
+# Run a subset via `Pkg.test(test_args=["TestPlaneField"])`; no arguments runs all of them.
+const TEST_MODULES = ["TestPlaneField", "TestAqua"]
 
 const SELECTED = isempty(ARGS) ? TEST_MODULES : ARGS
 
@@ -31,7 +18,7 @@ end
     for name in SELECTED
         @testset "$name" begin
             mod = Module(Symbol(name))
-            Core.eval(mod, :(using OpticsBase, Test))
+            Core.eval(mod, :(using OpticsBase, Test, StaticArrays))
             Base.include(mod, joinpath(@__DIR__, "$name.jl"))
         end
     end
