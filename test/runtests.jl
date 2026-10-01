@@ -1,5 +1,6 @@
 using OpticsBase
 using StaticArrays: SVector
+using JLArrays
 using Test
 
 # Test modules in execution order. Each entry is a file `test/<name>.jl`.
@@ -18,7 +19,7 @@ end
     for name in SELECTED
         @testset "$name" begin
             mod = Module(Symbol(name))
-            Core.eval(mod, :(using OpticsBase, Test, StaticArrays))
+            Core.eval(mod, :(using OpticsBase, Test, StaticArrays, JLArrays, LinearAlgebra))
             Base.include(mod, joinpath(@__DIR__, "$name.jl"))
         end
     end

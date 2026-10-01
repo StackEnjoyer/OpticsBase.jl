@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="372" height="244" viewBox="10 28 372 244" role="img" aria-labelledby="title desc">
   <title id="title">OpticsBase.jl</title>
-  <desc id="desc">Three rays converge onto a port and leave it as a spherical wave: the ray-to-wave handover at a port.</desc>
+  <desc id="desc">Three rays converge onto a plane and leave it as a spherical wave: a field handed over on a plane.</desc>
   <!-- Julia colors: red #CB3C33, green #389826, purple #9558B2, blue #4063D8.
        No black or white, so one file serves both light and dark themes. -->
   <g fill="none" stroke-width="12">

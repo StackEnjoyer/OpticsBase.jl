@@ -24,12 +24,27 @@ E_n = \frac{i Z_0}{k_0 n^2}\left(\partial_u H_v - \partial_v H_u\right), \qquad
 H_n = -\frac{i}{k_0 Z_0}\left(\partial_u E_v - \partial_v E_u\right).
 ```
 
-Solvers that only know ``\mathbf{E}`` of a wave travelling along the normal use the
-E-only constructor, which sets ``\mathbf{H} = (n/Z_0)\,\mathbf{n}\times\mathbf{E}``.
-Solvers that only accept such a wave take [`forward`](@ref) of the incoming field.
+Solvers that only know ``\mathbf{E}`` use the E-only constructor. It fills in
+``\mathbf{H}`` for a local plane wave along the *reference direction* of each sample:
+``\mathbf{n}`` without a reference sphere, otherwise the ray of the reference sphere
+through the sample. For ``R = \infty`` this is
+``\mathbf{H} = (n/Z_0)\,\mathbf{n}\times\mathbf{E}``. [`forward`](@ref) and
+[`backward`](@ref) split a field into local plane waves along and against the same
+reference directions. Both are exact for waves along the reference direction; a plane wave
+at the angle ``\theta`` to it is off by the order of ``1 - \cos\theta``. `forward` is
+therefore meant for fields that may contain both directions: a solver that knows its
+input travels one way takes `f.E` directly.
 
 There is no scalar field type. A scalar solver hands over ``E_u = \psi``, ``E_v = 0`` and
 reads ``E_u``.
+
+## Medium
+
+A plane lies in a homogeneous, isotropic, lossless and non-magnetic medium of refractive
+index `n`, at least across the sampled region. The tangential fields are exact in any
+medium, but `n` enters the E-only constructor, the forward/backward split, the reference
+phase and the normal components. A plane through an inhomogeneous structure, such as a
+fiber cross-section, has no single `n`: place it in the surrounding medium.
 
 ## Units
 

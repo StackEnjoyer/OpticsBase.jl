@@ -45,6 +45,11 @@ it and this summary in sync.
 - **Units:** SI (m, s, W, V/m, A/m); Z₀ = 376.730313668 Ω (same literal as BMO).
 - **Amplitudes:** complex peak values; the real field is Re(E e^{−iωt}).
 - **Power:** Poynting flux along n, ½ Re ∫(Eu Hv* − Ev Hu*) dA; exact and signed.
+- **Reference direction:** n for R = ∞, else the ray of the reference sphere through the
+  sample. The E-only constructor and `forward`/`backward` treat each sample as a local
+  plane wave along it: exact there, error of order 1 − cos θ at angle θ to it.
+- **Medium:** homogeneous, isotropic, lossless, non-magnetic at the plane; no planes
+  through inhomogeneous structures (e.g. fiber cross-sections).
 - **Frame:** `axes` = (u, v, n), orthonormal and right-handed; n is the reference
   direction (positive power, `forward`); u fixes the polarization basis; no global
   optical axis.
@@ -87,7 +92,7 @@ here.
 ## Julia code conventions
 
 - **Type-stable, generic code.** Concrete parametric fields; generic in the element type
-  (`Float32`, `Float64`, dual numbers) and the array type (GPU arrays): use `similar`,
+  (`Float32`, `Float64`) and the array type (GPU arrays, tested with JLArrays): use `similar`,
   broadcasting and views, no scalar indexing in `src/`.
 - **`StaticArrays` for 3-vectors and 3×3 matrices.**
 - **No type piracy**, no methods on `Base` functions for foreign types.

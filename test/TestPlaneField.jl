@@ -71,7 +71,9 @@ end
         u, v = coordinates(f, 1)[10], coordinates(f, 2)[100]
         # the reference formula cancels (√(ρ² + R²) ≈ |R|), hence the loose tolerance
         @test P[10, 100] ≈ cis(sign(R) * k * (sqrt(u^2 + v^2 + R^2) - abs(R))) rtol = 1e-9
-        @test power(f) == power(gaussian_field(; n))
+        # the reference phase cancels in the Poynting flux of given E and H
+        g = PlaneField(f.E, f.H, f.spacing, f.origin, f.axes, f.λ; n = f.n)
+        @test power(f) == power(g)
     end
     @test all(==(1), reference_phase(gaussian_field()))
     # converging: phase decreases outwards
@@ -110,4 +112,83 @@ end
     @test_throws ArgumentError PlaneField(E, geo(; spacing = (1e-6, 0))...)
     @test_throws ArgumentError PlaneField(E, geo()...; n = 0)
     @test_throws ArgumentError PlaneField(E, geo()...; R = 0)
+end
+
+@testset "Reference directions: spherical wave, exact H" begin
+    # A diverging spherical wave from the center of the reference sphere, sampled out to
+    # about 40° off axis. The E-only constructor with R must reproduce its exact H, and
+    # the split must find no backward part.
+    λ, n, R = 1e-6, 1.3, 50e-6
+    k, Y = 2π / λ * n, n / Z0
+    N, Δ = 161, 0.5e-6
+    c = ((0:(N - 1)) .- N ÷ 2) .* Δ
+    Et = zeros(ComplexF64, N, N, 2)
+    Ht = zeros(ComplexF64, N, N, 2)
+    for (j, η) in enumerate(c), (i, ξ) in enumerate(c)
+        p = [ξ, η, R]                             # sample relative to the sphere center
+        r = norm(p)
+        d = p / r
+        pol = [0.3, 1.0, 0] - dot(d, [0.3, 1.0, 0]) * d    # transverse polarization
+        E3 = pol / r * cis(k * (r - R))           # stored field: reference phase removed
+        H3 = Y * cross(d, E3)
+        Et[i, j, :] = E3[1:2]
+        Ht[i, j, :] = H3[1:2]
+    end
+    geo = ((Δ, Δ), zeros(3), AXES, λ)
+    f = PlaneField(Et, geo...; n, R)
+    @test f.H ≈ Ht rtol = 1e-12
+    exact = PlaneField(Et, Ht, geo...; n, R)
+    @test forward(exact).E ≈ Et rtol = 1e-12
+    @test maximum(abs, backward(exact).E) < 1e-12 * maximum(abs, Et)
+    # without the reference sphere the plane-normal rule is visibly wrong off axis
+    @test !isapprox(PlaneField(Et, geo...; n).H, Ht; rtol = 1e-2)
+end
+
+@testset "Oblique plane wave: documented split error" begin
+    # s-polarized plane wave at θ to n with its exact H: forward/backward assume
+    # propagation along n and leak the backward amplitude (1 − cos θ)/2.
+    θ, λ, n = 0.5, 1e-6, 1.0
+    k, Y = 2π / λ * n, n / Z0
+    N, Δ = 32, 0.1e-6
+    c = ((0:(N - 1)) .- N ÷ 2) .* Δ
+    ψ = [cis(k * sin(θ) * ξ) for ξ in c, η in c]
+    E = cat(zero(ψ), ψ; dims = 3)                 # E along v
+    H = cat(-Y * cos(θ) .* ψ, zero(ψ); dims = 3)  # H = Y d × E with d = (sin θ, 0, cos θ)
+    f = PlaneField(E, H, (Δ, Δ), zeros(3), AXES, λ; n)
+    @test backward(f).E[:, :, 2] ≈ (1 - cos(θ)) / 2 .* ψ rtol = 1e-12
+    @test power(f) ≈ Y / 2 * cos(θ) * N^2 * Δ^2 rtol = 1e-12
+end
+
+@testset "Array and geometry precision are independent" begin
+    E = rand(ComplexF32, 8, 8, 2)
+    f = PlaneField(E, (1e-6, 1e-6), (1.0, 2.0, 3.0), AXES, 1e-6; R = 1e-3)
+    @test f isa PlaneField{Float64, Array{ComplexF32, 3}}
+    @test f.E === E || f.E == E
+    @test eltype(f.H) == ComplexF32
+    @test eltype(reference_phase(f)) == ComplexF32
+    @test eltype(forward(f).E) == ComplexF32
+    @test f.origin == SVector(1.0, 2.0, 3.0)
+end
+
+@testset "Validation rejects non-finite input" begin
+    E = zeros(ComplexF64, 4, 4, 2)
+    @test_throws ArgumentError PlaneField(E, (1e-6, 1e-6), zeros(3), AXES, Inf)
+    @test_throws ArgumentError PlaneField(E, (1e-6, Inf), zeros(3), AXES, 1e-6)
+    @test_throws ArgumentError PlaneField(E, (1e-6, 1e-6), [0.0, NaN, 0], AXES, 1e-6)
+    @test_throws ArgumentError PlaneField(E, (1e-6, 1e-6), zeros(3), AXES, 1e-6; n = Inf)
+    @test_throws ArgumentError PlaneField(E, (1e-6, 1e-6), zeros(3), AXES, 1e-6; R = NaN)
+    @test PlaneField(E, (1e-6, 1e-6), zeros(3), AXES, 1e-6; R = -Inf).R == -Inf
+end
+
+@testset "GPU-style arrays (JLArrays, no scalar indexing)" begin
+    E = JLArray(rand(ComplexF32, 8, 6, 2))
+    f = PlaneField(E, (1e-6, 2e-6), zeros(3), AXES, 1e-6; R = 1e-4)
+    @test f.E isa JLArray && f.H isa JLArray
+    @test reference_phase(f) isa JLArray
+    @test forward(f).E isa JLArray
+    @test power(f) ≈ power(PlaneField(Array(f.E), Array(f.H), f.spacing, f.origin, f.axes,
+        f.λ; R = f.R)) rtol = 1e-5
+    @test Array(forward(f).E) ≈ Array(f.E) rtol = 1e-4
+    @test PlaneField(Array(E)[:, :, 1] |> JLArray, (1e-6, 2e-6), zeros(3), AXES, 1e-6).E isa
+          JLArray
 end

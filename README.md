@@ -19,7 +19,7 @@ struct PlaneField{T, A}
     H::A          # nx × ny × 2: (Hu, Hv) in A/m
     spacing       # (Δu, Δv) in m
     origin        # plane center, global frame
-    axes          # columns u, v, n (right-handed, n = direction of travel)
+    axes          # columns u, v, n (right-handed, n = reference direction)
     λ             # vacuum wavelength
     n             # refractive index at the plane
     R             # radius of the reference sphere (Inf = none)
