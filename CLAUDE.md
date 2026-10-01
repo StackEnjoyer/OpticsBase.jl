@@ -9,9 +9,9 @@ Current repository: `StackEnjoyer/OpticsBase.jl`. Planned home:
 `JuliaPhysics/OpticsBase.jl`; on transfer, update the repo URLs in `docs/make.jl` and
 `README.md`. The binding physical conventions are in
 [docs/src/conventions.md](docs/src/conventions.md). The design and its rationale are in
-[plans/huygens-core.md](plans/huygens-core.md), which replaced an earlier, much larger
-design (ports, ray bundles, plane-wave spectra, converters, CommonSolve interface;
-see git history before the rewrite).
+`plans/huygens-core.md` (plans are local and not checked in), which replaced an earlier,
+much larger design (ports, ray bundles, plane-wave spectra, converters, CommonSolve
+interface; see git history before the rewrite).
 
 ## Settled architecture decisions
 
