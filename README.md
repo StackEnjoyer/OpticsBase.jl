@@ -40,6 +40,10 @@ f2, stats = propagate(f1, fiber, FDBPM(dz = 1e-6); grid)                   # Bea
 src = WavefrontBeamletDecomposition(f2)                                     # BeamletOptics
 ```
 
+`OpticsBase.Conformance` is a shared test suite: a package runs it against its own
+sources and propagators, which compares their fields with analytic Gaussian beams,
+including the absolute phase.
+
 There is no solver interface, no trait system and no converter registry. The glue lives
 in the solver packages. The binding conventions (SI units, exp(−iωt), peak amplitudes,
 frames, sampling, phase reference) are on the

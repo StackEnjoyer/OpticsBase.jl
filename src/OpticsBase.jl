@@ -298,4 +298,6 @@ function _split(f::PlaneField{T}, s) where {T}
     return PlaneField{T, typeof(E)}(E, H, f.spacing, f.origin, f.axes, f.λ, f.n, f.R)
 end
 
+include("Conformance.jl")
+
 end # module OpticsBase
