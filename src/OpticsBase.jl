@@ -55,9 +55,10 @@ is scalar and is put into `Eu` (`Ev = 0`).
   `(coordinates(f, 1)[i], coordinates(f, 2)[j])`, with the origin at the fftshift center
   (see [`coordinates`](@ref)).
 - `origin`: center of the plane in global coordinates in \\[m\\].
-- `axes`: `3 × 3` matrix with the columns `u`, `v`, `n`. Orthonormal and right-handed
-  (`u × v = n`). `n` is the reference direction: [`power`](@ref) counts the flux along
-  `n` positive, [`forward`](@ref) is the part travelling along `+n`. `u` fixes the
+- `axes`: `3 × 3` matrix with the columns `u`, `v`, `n`. Orthonormal to within `1e-6`
+  (axes computed in single precision are accepted) and right-handed (`u × v = n`). `n`
+  is the positive normal: [`power`](@ref) counts the flux along `+n` as positive, and
+  [`forward`](@ref) is the part travelling towards the `+n` side. `u` fixes the
   polarization basis.
 - `λ`: vacuum wavelength in \\[m\\].
 - `n`: real refractive index of the medium at the plane.
@@ -119,8 +120,9 @@ struct PlaneField{T <: Real, A <: AbstractArray{<:Complex, 3}}
         all(Δ -> isfinite(Δ) && Δ > 0, spacing) ||
             throw(ArgumentError("spacing must be positive and finite, got $spacing"))
         all(isfinite, origin) || throw(ArgumentError("origin must be finite, got $origin"))
-        norm(axes' * axes - I) <= 1000 * eps(float(T)) ||
-            throw(ArgumentError("the columns of axes (u, v, n) must be orthonormal"))
+        # 1e-6 admits axes computed in single precision; a tilt that small is negligible
+        norm(axes' * axes - I) <= 1e-6 ||
+            throw(ArgumentError("the columns of axes (u, v, n) must be orthonormal to within 1e-6"))
         det(axes) > 0 || throw(ArgumentError("axes (u, v, n) must be right-handed"))
         isfinite(λ) && λ > 0 || throw(ArgumentError("λ must be positive and finite, got $λ"))
         isfinite(n) && n > 0 || throw(ArgumentError("n must be positive and finite, got $n"))
