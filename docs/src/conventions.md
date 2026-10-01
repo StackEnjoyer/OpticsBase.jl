@@ -118,10 +118,16 @@ reference sphere.
 
 ## More than one plane
 
-Anything that does not fit a single coherent, monochromatic field on one plane is a
-`Vector{PlaneField}`:
+A `Vector{PlaneField}` has no meaning of its own: the function that returns or takes it
+states in its docstring which of the following it is. The rules for each:
 
-- a closed Huygens surface, e.g. the six faces of a box around a scatterer;
-- polychromatic light and pulses, one field per wavelength, all with the common time
-  origin ``t = 0``;
-- mutually incoherent components, whose powers add.
+- **Closed Huygens surface** (e.g. the faces of a box around a scatterer): one coherent,
+  monochromatic field; all faces share `λ`, the phase reference and the time origin, and
+  every face's `n` points outward, so the summed [`power`](@ref) is the net power leaving
+  the enclosed volume.
+- **Spectrum** (discrete lines, e.g. a sampled pulse): one field per wavelength, all with
+  the common time origin ``t = 0``. Each field holds the peak amplitude of its line, so
+  its `power` is the power of that line. The total power is the sum, since different
+  frequencies do not interfere in the time average.
+- **Mutually incoherent components** (e.g. two polarizations of unpolarized light, or
+  independent sources): powers add, phases between the components have no meaning.

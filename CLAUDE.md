@@ -29,8 +29,10 @@ interface; see git history before the rewrite).
    BeamletOptics, a hard dependency in BeamletFibers). OpticsBase knows no solver.
 5. **Minimal dependencies:** `LinearAlgebra` and `StaticArrays` only. Adding one needs a
    very good reason.
-6. **Beyond one plane by convention, not by types:** closed Huygens surfaces,
-   polychromatic and incoherent light are `Vector{PlaneField}`.
+6. **Beyond one plane by convention, not by types:** closed Huygens surfaces (normals
+   outward), spectra (one field per line, common t = 0) and incoherent components are
+   `Vector{PlaneField}`; the function that returns or takes one documents which. No
+   non-plane field types: a closed box of planes covers curved surfaces.
 7. **One non-minimal field, the reference sphere `R`,** keeps converging or diverging
    beams cheap to sample. Tilt is not factored out; turn the plane instead.
 

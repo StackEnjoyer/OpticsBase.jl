@@ -83,9 +83,11 @@ surrounding medium instead.
 - The normal components are not stored. They follow from Maxwell's curl equations on the
   plane (non-magnetic medium): `En = i Z₀/(k₀ n²) (∂u Hv − ∂v Hu)` and
   `Hn = −i/(k₀ Z₀) (∂u Ev − ∂v Eu)`, with `k₀ = 2π/λ`, applied to the physical fields.
-- A field that does not fit a single plane is a `Vector{PlaneField}` by convention: the
-  faces of a closed Huygens box, the wavelengths of a pulse (common time origin `t = 0`),
-  or mutually incoherent components (powers add).
+- A field that does not fit a single plane is a `Vector{PlaneField}`: a closed Huygens
+  surface (normals outward), a spectrum (one field per line, common time origin `t = 0`)
+  or mutually incoherent components (powers add). The vector has no meaning of its own;
+  the function that returns or takes it documents which one it is. See the
+  "Conventions" page.
 
 # Fields
 
