@@ -79,10 +79,12 @@ see [`power`](@ref). It is exact and signed; no paraxial factor is involved.
 ## Frame
 
 - The plane has an `origin` and `axes` ``(\mathbf{u}, \mathbf{v}, \mathbf{n})`` in global
-  coordinates, orthonormal and right-handed, ``\mathbf{u}\times\mathbf{v} = \mathbf{n}``.
-  There is no global optical axis.
-- ``\mathbf{n}`` is the reference direction: positive power and [`forward`](@ref) mean
-  travelling along ``+\mathbf{n}``.
+  coordinates, orthonormal (to within ``10^{-6}``) and right-handed,
+  ``\mathbf{u}\times\mathbf{v} = \mathbf{n}``. There is no global optical axis.
+- ``\mathbf{n}`` is the positive normal: [`power`](@ref) counts the flux along
+  ``+\mathbf{n}`` as positive, and [`forward`](@ref) is the part travelling towards the
+  ``+\mathbf{n}`` side. The *reference direction* of a sample is a different thing: it
+  equals ``\mathbf{n}`` only without a reference sphere, see [What is exchanged](@ref).
 - ``\mathbf{u}`` fixes the polarization basis and is always given explicitly.
 - Field components are stored in the local frame. Moving or rotating a plane changes
   `origin` and `axes` only, never the arrays.

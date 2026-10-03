@@ -5,7 +5,7 @@ using Test
 
 # Test modules in execution order. Each entry is a file `test/<name>.jl`.
 # Run a subset via `Pkg.test(test_args=["TestPlaneField"])`; no arguments runs all of them.
-const TEST_MODULES = ["TestPlaneField", "TestAqua"]
+const TEST_MODULES = ["TestPlaneField", "TestConformance", "TestAqua"]
 
 const SELECTED = isempty(ARGS) ? TEST_MODULES : ARGS
 

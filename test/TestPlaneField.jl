@@ -108,6 +108,11 @@ end
     @test_throws DimensionMismatch PlaneField(zeros(4, 4, 3), zeros(4, 4, 3), geo()...)
     @test_throws ArgumentError PlaneField(E, geo(; axes = 2AXES)...)
     @test_throws ArgumentError PlaneField(E, geo(; axes = [1.0 0 0; 0 1 0; 0 0 -1])...)
+    # orthonormal to within 1e-6: single precision axes pass, a skew of 1e-5 does not
+    c, s = cos(0.3f0), sin(0.3f0)
+    @test PlaneField(E, geo(; axes = Float32[c 0 s; 0 1 0; -s 0 c])...).axes isa
+          SMatrix{3, 3, Float64}
+    @test_throws ArgumentError PlaneField(E, geo(; axes = [1.0 1e-5 0; 0 1 0; 0 0 1])...)
     @test_throws ArgumentError PlaneField(E, geo(; λ = 0)...)
     @test_throws ArgumentError PlaneField(E, geo(; spacing = (1e-6, 0))...)
     @test_throws ArgumentError PlaneField(E, geo()...; n = 0)

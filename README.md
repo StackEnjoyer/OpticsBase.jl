@@ -19,7 +19,7 @@ struct PlaneField{T, A}
     H::A          # nx × ny × 2: (Hu, Hv) in A/m
     spacing       # (Δu, Δv) in m
     origin        # plane center, global frame
-    axes          # columns u, v, n (right-handed, n = reference direction)
+    axes          # columns u, v, n (right-handed, n = positive normal)
     λ             # vacuum wavelength
     n             # refractive index at the plane
     R             # radius of the reference sphere (Inf = none)
@@ -39,6 +39,10 @@ f1 = PlaneField(detector; size = (256, 256), spacing = (0.25e-6, 0.25e-6))  # Be
 f2, stats = propagate(f1, fiber, FDBPM(dz = 1e-6); grid)                   # BeamletFibers
 src = WavefrontBeamletDecomposition(f2)                                     # BeamletOptics
 ```
+
+`OpticsBase.Conformance` is a shared test suite: a package runs it against its own
+sources and propagators, which compares their fields with analytic Gaussian beams,
+including the absolute phase.
 
 There is no solver interface, no trait system and no converter registry. The glue lives
 in the solver packages. The binding conventions (SI units, exp(−iωt), peak amplitudes,

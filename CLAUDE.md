@@ -24,7 +24,7 @@ interface; see git history before the rewrite).
    return a `PlaneField` and methods that take one.
 3. **No solver code.** Numerics that need an FFT, a mesh or a ray tracer belong in solver
    packages. The package only has `coordinates`, `reference_phase`, `power`, `forward`,
-   `backward` and the constructors.
+   `backward`, the constructors and the conformance suite.
 4. **Glue lives in the solver packages** (e.g. `BeamletOpticsOpticsBaseExt` in
    BeamletOptics, a hard dependency in BeamletFibers). OpticsBase knows no solver.
 5. **Minimal dependencies:** `LinearAlgebra` and `StaticArrays` only. Adding one needs a
@@ -52,9 +52,10 @@ it and this summary in sync.
   plane wave along it: exact there, error of order 1 − cos θ at angle θ to it.
 - **Medium:** homogeneous, isotropic, lossless, non-magnetic at the plane; no planes
   through inhomogeneous structures (e.g. fiber cross-sections).
-- **Frame:** `axes` = (u, v, n), orthonormal and right-handed; n is the reference
-  direction (positive power, `forward`); u fixes the polarization basis; no global
-  optical axis.
+- **Frame:** `axes` = (u, v, n), orthonormal (to within 1e-6) and right-handed; n is the
+  positive normal (power along +n is positive, `forward` travels towards the +n side),
+  not to be confused with the per-sample reference direction; u fixes the polarization
+  basis; no global optical axis.
 - **Sampling:** sample i at (i − 1 − N÷2)·Δ from the origin (fftshift center); no grid
   offsets.
 - **Phase:** physical field = stored field × `reference_phase`; full spatial phase, OPL
@@ -89,7 +90,11 @@ julia --project=. -e 'using Pkg; Pkg.test(test_args=["TestPlaneField"])'   # one
 ```
 
 `TestAqua` runs Aqua.jl. Chain tests with real solvers live in the solver packages, not
-here.
+here. `OpticsBase.Conformance` (src/Conformance.jl) is the shared test suite solver
+packages run against themselves: analytic Gaussian beams, checks of power, field shape,
+absolute phase and backward light. It must not depend on `Test`. Every convention
+change needs a matching conformance check; `test/TestConformance.jl` verifies that the
+suite detects typical convention errors.
 
 ## Julia code conventions
 

@@ -17,7 +17,8 @@ makedocs(;
     pagesonly = true,
     pages = [
         "Home" => "index.md",
-        "Conventions" => "conventions.md"
+        "Conventions" => "conventions.md",
+        "Conformance tests" => "conformance.md"
     ]
 )
 
