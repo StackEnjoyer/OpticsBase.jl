@@ -21,18 +21,24 @@ Both return a vector of [`Result`](@ref)s. In the package's test suite:
 ```julia
 using OpticsBase: Conformance
 
-for r in Conformance.check_source(make)
+@testset "\$(r.name)" for r in Conformance.check_source(make)
     @test r.value <= r.limit
 end
 ```
 
-The module has no dependency on `Test`.
+One test set per check keeps the name of a failing check in the test output. The module
+has no dependency on `Test`.
 """
 module Conformance
 
 using LinearAlgebra: cross, dot, norm, normalize
 using StaticArrays: SMatrix, SVector
-using ..OpticsBase: PlaneField, VACUUM_IMPEDANCE, backward, power, reference_phase
+using ..OpticsBase: PlaneField, VACUUM_IMPEDANCE, _coordinates, backward, power,
+                    reference_phase
+
+# Default limit of the geometry checks; the orthonormality tolerance of `PlaneField`, so
+# that axes computed in single precision pass
+const GEOMETRY_TOL = 1e-6
 
 """
     GaussianBeam(; waist, direction, λ, w0, P = 1e-3, n = 1, jones = (1, 0))
@@ -83,29 +89,38 @@ beam_radius(b::GaussianBeam, z) = b.w0 * sqrt(1 + (z / rayleigh_range(b))^2)
 
 The analytic [`PlaneField`](@ref) of `beam` on the plane with `origin`, `axes`
 (columns `u`, `v`, `n`), `size = (nx, ny)` and `spacing`, built with the E-only
-constructor. The plane normal `n` must be the beam direction; the origin may lie off the
-axis.
+constructor. The plane normal `n` must be the beam direction to within `1e-6` (the
+orthonormality tolerance of `PlaneField`, so axes computed in single precision are
+accepted); the origin may lie off the axis.
 """
 function field(b::GaussianBeam, origin, axes, size::NTuple{2, Integer}, spacing)
     A = SMatrix{3, 3, Float64}(axes)
-    u, v, n = A[:, 1], A[:, 2], A[:, 3]
-    abs(dot(n, b.direction) - 1) < 1e-9 ||
+    norm(A[:, 3] - b.direction) <= GEOMETRY_TOL ||
         throw(ArgumentError("the plane normal must be the beam direction"))
-    o = SVector{3, Float64}(origin)
+    E = samples(b, origin, A, size, spacing)
+    return PlaneField(E, spacing, SVector{3, Float64}(origin), A, b.λ; n = b.n)
+end
+
+# `nx × ny × 2` array of the field of `b` along `u` and `v` at the samples of a plane. Each
+# sample is evaluated at its position in space, with the direction of the beam and not
+# the plane normal, so this holds on any plane. The reference of `field` and `compare`.
+function samples(b::GaussianBeam, origin, axes, size, spacing)
+    A = SMatrix{3, 3, Float64}(axes)
+    u, v, d = A[:, 1], A[:, 2], b.direction
+    o = SVector{3, Float64}(origin) - b.waist
     k, zR = 2π * b.n / b.λ, rayleigh_range(b)
-    z = dot(o - b.waist, n)
-    w = beam_radius(b, z)
-    invR = z / (z^2 + zR^2)
     E0 = sqrt(4 * VACUUM_IMPEDANCE * b.P / (b.n * π * b.w0^2))
-    a = o - b.waist - z * n                      # offset of the origin from the axis
-    ξs, ηs = (((0:(size[d] - 1)) .- size[d] ÷ 2) .* spacing[d] for d in 1:2)
+    ξs, ηs = _coordinates(Float64, size, spacing)
     ψ = [begin
-             ρ2 = sum(abs2, a + ξ * u + η * v)
-             E0 * b.w0 / w * exp(-ρ2 / w^2) * cis(k * z - atan(z, zR) + k * ρ2 * invR / 2)
+             r = o + ξ * u + η * v
+             z = dot(r, d)
+             ρ2 = sum(abs2, r - z * d)
+             w = beam_radius(b, z)
+             E0 * b.w0 / w * exp(-ρ2 / w^2) *
+             cis(k * z - atan(z, zR) + k * ρ2 * z / (2 * (z^2 + zR^2)))
          end
          for ξ in ξs, η in ηs]
-    E = cat(b.jones[1] .* ψ, b.jones[2] .* ψ; dims = 3)
-    return PlaneField(E, spacing, o, A, b.λ; n = b.n)
+    return cat(b.jones[1] .* ψ, b.jones[2] .* ψ; dims = 3)
 end
 
 """
@@ -123,7 +138,8 @@ end
 passed(r::Result) = r.value <= r.limit
 
 function Base.show(io::IO, r::Result)
-    print(io, passed(r) ? "pass" : "FAIL", ": ", r.name, " (", r.value, " <= ", r.limit, ")")
+    verdict, relation = passed(r) ? ("pass", " <= ") : ("FAIL", " > ")
+    print(io, verdict, ": ", r.name, " (", r.value, relation, r.limit, ")")
 end
 
 """
@@ -140,13 +156,16 @@ Compares `f` with the analytic field of `beam` on the plane of `f` and returns
   doubled phase);
 - backward light: `|power(backward(f))|/P` (`H` consistent with a forward wave).
 
-The plane of `f` must be normal to the beam.
+The reference is the beam at the sample positions of `f`, with `jones` taken in the
+`(u, v)` of `f`. The checks are meant for a plane normal to the beam. A field on another
+plane does not throw: it fails the checks, and [`check_source`](@ref) and
+[`check_propagator`](@ref) report the plane itself.
 """
 function compare(f::PlaneField, b::GaussianBeam; name = "", power_rtol = 1e-3,
         field_tol = 1e-4, phase_tol = 1e-3, backward_tol = 1e-6)
-    ref = field(b, f.origin, f.axes, (size(f.E, 1), size(f.E, 2)), f.spacing)
+    ref = samples(b, f.origin, f.axes, (size(f.E, 1), size(f.E, 2)), f.spacing)
     E = collect(f.E .* reference_phase(f))
-    c = dot(ref.E, E) / (norm(ref.E) * norm(E))
+    c = dot(ref, E) / (norm(ref) * norm(E))
     prefix = isempty(name) ? "" : name * ": "
     return [
         Result(prefix * "power", abs(power(f) / b.P - 1), power_rtol),
@@ -195,32 +214,37 @@ function plane(b::GaussianBeam, A, z, offset)
 end
 
 """
-    check_source(make; n = 1, kwargs...)
+    check_source(make; n = 1, geometry_tol = 1e-6, kwargs...)
 
 Runs the source conformance tests: for each standard [`GaussianBeam`](@ref) case,
 `make(beam, origin, axes, size, spacing)` must return the field of `beam` on that plane as
-a [`PlaneField`](@ref) with exactly that origin, axes and sampling. The cases cover the
+a [`PlaneField`](@ref) with that origin, axes and sampling. The cases cover the
 axes `+z`, `+y` (the BeamletOptics optical axis) and an oblique one, planes at the waist,
 before and behind it and off the axis, linear and right-circular polarization
 (`jones = (1, i)`, positive helicity), in a medium of index `n`. `kwargs` are tolerances,
 see [`compare`](@ref). Returns the [`Result`](@ref)s, including a check that the returned
 plane is the requested one.
+
+`geometry_tol` is the limit of that check: the largest of the origin error in units of the
+sample spacing, the error of the axes and the relative error of the spacing. The default
+is the orthonormality tolerance of `PlaneField`, so axes computed in single precision
+pass. A returned plane outside the limit fails this check; it does not throw.
 """
-function check_source(make; n = 1, kwargs...)
+function check_source(make; n = 1, geometry_tol = GEOMETRY_TOL, kwargs...)
     results = Result[]
     for (name, b, A, z, offset, _) in cases(n)
         o, sz, sp = plane(b, A, z, offset)
         f = make(b, o, A, sz, sp)
         geometry = max(norm(f.origin - o) / sp[1], norm(f.axes - A),
             maximum(abs.(f.spacing ./ sp .- 1)), Float64(size(f.E)[1:2] != sz))
-        push!(results, Result(name * ": plane as requested", geometry, 1e-9))
+        push!(results, Result(name * ": plane as requested", geometry, geometry_tol))
         append!(results, compare(f, b; name, kwargs...))
     end
     return results
 end
 
 """
-    check_propagator(propagate; n = 1, kwargs...)
+    check_propagator(propagate; n = 1, geometry_tol = 1e-6, kwargs...)
 
 Runs the propagator conformance tests: for each standard [`GaussianBeam`](@ref) case, the
 analytic field on a plane normal to the beam is passed to `propagate(f, L)`, which must
@@ -228,16 +252,18 @@ return the field after the distance `L` along the plane normal in a homogeneous 
 index `f.n`, on the plane `f.origin + L n` with the axes of `f` (sampling is up to the
 propagator). The cases include propagation through a focus, circular polarization and an
 oblique, off-axis plane. `kwargs` are tolerances, see [`compare`](@ref). Returns the
-[`Result`](@ref)s, including a check of the output plane.
+[`Result`](@ref)s, including a check of the output plane with the limit `geometry_tol`
+(origin error in units of the input sample spacing and error of the axes, see
+[`check_source`](@ref)).
 """
-function check_propagator(propagate; n = 1, kwargs...)
+function check_propagator(propagate; n = 1, geometry_tol = GEOMETRY_TOL, kwargs...)
     results = Result[]
     for (name, b, A, z, offset, L) in cases(n)
         o, sz, sp = plane(b, A, z, offset)
         g = propagate(field(b, o, A, sz, sp), L)
         target = o + L * A[:, 3]
         geometry = max(norm(g.origin - target) / sp[1], norm(g.axes - A))
-        push!(results, Result(name * ": output plane", geometry, 1e-9))
+        push!(results, Result(name * ": output plane", geometry, geometry_tol))
         append!(results, compare(g, b; name, kwargs...))
     end
     return results

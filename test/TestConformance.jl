@@ -60,10 +60,46 @@ end
     @test any(contains("power"), failing(C.check_propagator(paraxial_power)))
 end
 
+@testset "Plane geometry: single precision passes, a wrong plane fails without throwing" begin
+    # axes computed in single precision are a valid PlaneField and conform
+    f32_axes(b, o, A, sz, sp) = (f = C.field(b, o, A, sz, sp);
+        PlaneField(f.E, f.H, f.spacing, f.origin, Float64.(Float32.(f.axes)), f.λ; n = f.n))
+    @test passes(C.check_source(f32_axes))
+    # ... unless the caller asks for more than single precision gives
+    @test any(contains("plane as requested"),
+        failing(C.check_source(f32_axes; geometry_tol = 1e-9)))
+
+    # single precision geometry cannot hold the position: reported, not thrown
+    f32_geometry(f, L) = (g = asm_propagate(f, L);
+        PlaneField(g.E, g.H, Float32.(g.spacing), Float32.(g.origin), Float32.(g.axes),
+            Float32(g.λ); n = g.n))
+    @test any(contains("output plane"), failing(C.check_propagator(f32_geometry)))
+
+    # the field of the right plane, declared on a plane tilted by 1 mrad
+    function tilted(f, L)
+        g = asm_propagate(f, L)
+        c, s = cos(1e-3), sin(1e-3)
+        u, v, n = g.axes[:, 1], g.axes[:, 2], g.axes[:, 3]
+        return PlaneField(g.E, g.H, g.spacing, g.origin, hcat(c * u - s * n, v, s * u + c * n),
+            g.λ; n = g.n)
+    end
+    bad = failing(C.check_propagator(tilted))
+    @test count(contains("output plane"), bad) == 3
+    @test any(contains("field shape"), bad)
+
+    # the reference field itself still insists on a plane normal to the beam
+    b = C.GaussianBeam(; waist = zeros(3), direction = [0, 0, 1], λ = 1e-6, w0 = 20e-6)
+    c, s = cos(1e-3), sin(1e-3)
+    @test_throws ArgumentError C.field(b, zeros(3), [c 0 s; 0 1 0; -s 0 c], (8, 8),
+        (1e-6, 1e-6))
+    @test_throws ArgumentError C.field(b, zeros(3), [1.0 0 0; 0 -1 0; 0 0 -1], (8, 8),
+        (1e-6, 1e-6))
+end
+
 @testset "Results and reference beam" begin
     r = C.Result("x", 0.5, 1.0)
     @test sprint(show, r) == "pass: x (0.5 <= 1.0)"
-    @test startswith(sprint(show, C.Result("x", 2.0, 1.0)), "FAIL")
+    @test sprint(show, C.Result("x", 2.0, 1.0)) == "FAIL: x (2.0 > 1.0)"
     b = C.GaussianBeam(; waist = zeros(3), direction = [0, 0, 2], λ = 1e-6, w0 = 20e-6)
     @test b.direction == [0, 0, 1]
     f = C.field(b, zeros(3), [1.0 0 0; 0 1 0; 0 0 1], (128, 128), (2.5e-6, 2.5e-6))
