@@ -4,8 +4,11 @@
 
 # OpticsBase.jl
 
+[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://StackEnjoyer.github.io/OpticsBase.jl/stable/)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://StackEnjoyer.github.io/OpticsBase.jl/dev/)
 [![CI](https://github.com/StackEnjoyer/OpticsBase.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/StackEnjoyer/OpticsBase.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/StackEnjoyer/OpticsBase.jl/graph/badge.svg)](https://codecov.io/gh/StackEnjoyer/OpticsBase.jl)
+[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 A minimal interface package for coupling optical solvers in Julia. Every solver of the
 ecosystem, whether it traces beamlets, runs a BPM, sums an angular spectrum or solves
@@ -48,5 +51,17 @@ There is no solver interface, no trait system and no converter registry. The glu
 in the solver packages. The binding conventions (SI units, exp(−iωt), peak amplitudes,
 frames, sampling, phase reference) are on the
 [Conventions](https://StackEnjoyer.github.io/OpticsBase.jl/dev/conventions/) page.
+
+## Installation
+
+OpticsBase is installed from the General registry:
+
+```julia
+using Pkg
+Pkg.add("OpticsBase")
+```
+
+See the [documentation](https://StackEnjoyer.github.io/OpticsBase.jl/) for the reference
+and the conformance tests.
 
 **Status:** early development, the API is not stable yet.
